@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import * as XLSX from 'xlsx';
 import { createClient } from '@supabase/supabase-js';
+import { markPdfOutdated } from '../src/lib/pdf-status';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -160,6 +161,9 @@ async function importData(excelPath: string) {
   }
 
   console.log(`\nDone! Inserted: ${inserted}, Skipped (duplicates): ${skipped}`);
+
+  // Catalogue data changed — flag the PDF for regeneration.
+  await markPdfOutdated();
 }
 
 const excelPath = process.argv[2] || 'PRODUCT LIST (1).xlsx';

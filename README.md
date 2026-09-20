@@ -35,11 +35,13 @@ A document-first product catalogue built with Next.js 16, Supabase, and Tailwind
    - For an existing project, run `supabase/migrations/20260920_product_images.sql` to add the five-image product gallery and migrate existing product images.
    - Run `supabase/migrations/20260920_catalogue_sections.sql` to enable custom editorial sections.
    - Run `supabase/migrations/20260920_catalogue_settings.sql` to enable cover, contact, and final-page configuration.
+   - Run `supabase/migrations/20260920_catalogue_pdf.sql` to enable the automatic catalogue PDF system.
 4. Create storage buckets:
    - `product-images` (public, 5MB limit, image types)
    - `category-images` (public, 5MB limit, image types)
    - `catalogue-cover` (public, 5MB limit, image types)
    - `catalogue-sections` (public, 5MB limit, image types)
+   - `catalogue-pdfs` (public, 200MB limit, `application/pdf` only) — created automatically on first PDF generation if missing
 
 ### 2. Configure Environment
 
@@ -147,16 +149,50 @@ The public catalogue at `/catalogue` features:
 
 ### PDF export
 
-Start the app first, then export the same `/catalogue` route used by the website:
+Start the app first, then export the dedicated print route (`/catalogue/print`) used by the automatic PDF generator:
 
 ```bash
 npx playwright install chromium
 npm run dev
-CATALOGUE_URL=http://localhost:3000/catalogue npm run pdf:export -- ./gea-catalogue-2026.pdf
+CATALOGUE_URL=http://localhost:3000 npm run pdf:export -- ./gea-catalogue-2026.pdf
 ```
 
 The exporter waits for fonts and images, applies print media, and writes an A4 PDF. Set
 `NEXT_PUBLIC_SITE_URL` for deployed canonical URLs and `CATALOGUE_URL` when exporting from a different host.
+
+## Automatic Catalogue PDF
+
+The system keeps **one current PDF** — `catalogue-pdfs/catalogue/GEA-Product-Catalogue-2026.pdf` — and
+regenerates it in place whenever catalogue content changes. There is no version history and no duplicate files.
+
+### How it works
+
+1. Every public-catalogue write (products, categories, sections, images, settings, ordering) calls
+   `markPdfOutdated()` → the status row (`catalogue_pdf_status`) becomes `outdated` and `content_version` increments.
+2. A short debounce (default 60s, `PDF_DEBOUNCE_SECONDS`) batches several quick edits into one generation.
+3. Generation renders the dedicated `/catalogue/print` route (same Supabase data, GEA branding, A4 pages, page
+   numbers, cover and contact/QR pages) with Playwright + Chromium — not a screenshot of the website.
+4. The new PDF is uploaded **after** a successful render (upsert → replaces the old file), then status becomes `current`.
+5. If generation fails, the previous working PDF is left untouched, status becomes `failed`, and the admin panel
+   shows the error with a **Retry Generation** button. The public **Download PDF** button keeps serving the last
+   working PDF; if none exists yet it shows a quiet "PDF preparing" state.
+
+### Automatic triggers
+
+- **In-process (default):** `markPdfOutdated` schedules a debounced generation automatically — works on any
+  long-running server (`next start`, VPS, PM2).
+- **Cron endpoint (recommended for serverless/restarts):** hit `GET /api/catalogue/pdf/cron` on a schedule
+  (e.g. every minute). If you set `PDF_CRON_SECRET`, requests must send it as `x-pdf-cron-secret`.
+  - Vercel: add a Cron Job hitting that URL.
+  - Supabase: see the optional `pg_cron`/`pg_net` block at the bottom of `supabase/migrations/20260920_catalogue_pdf.sql`.
+- **Manual:** the admin **Catalogue PDF** page (`/admin/pdf`) has **Generate PDF** / **Retry Generation** buttons.
+  Only one generation job may run at a time (the status row acts as the lock; concurrent attempts return 409/busy).
+
+### Downloads & caching
+
+The public `Download PDF` button calls `GET /api/catalogue/pdf`, which streams the single stored file with
+`Cache-Control: no-cache, must-revalidate` so browsers and CDNs always retrieve the newest copy at the fixed URL,
+without changing the visible filename (`GEA-Product-Catalogue-2026.pdf`).
 
 ## Database Schema
 

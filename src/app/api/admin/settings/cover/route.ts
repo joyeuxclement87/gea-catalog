@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/admin-api';
 import { deleteImage, generateCoverImagePath, uploadImage, STORAGE_BUCKETS } from '@/lib/storage';
+import { markPdfOutdated } from '@/lib/pdf-status';
 import { NextRequest, NextResponse } from 'next/server';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -37,11 +38,13 @@ export async function POST(request: NextRequest) {
     if (existing.cover_image_path && existing.cover_image_path !== uploaded.path) {
       await deleteImage(STORAGE_BUCKETS.cover, existing.cover_image_path);
     }
+    await markPdfOutdated();
     return NextResponse.json(data);
   }
 
   const { data, error } = await supabase.from('catalogue_settings').insert(record).select().single();
   if (error) return NextResponse.json({ error: 'Cover record could not be saved.' }, { status: 500 });
+  await markPdfOutdated();
   return NextResponse.json(data);
 }
 
@@ -61,5 +64,6 @@ export async function DELETE() {
     .update({ cover_image_url: null, cover_image_path: null })
     .eq('id', existing.id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  await markPdfOutdated();
   return NextResponse.json({ success: true });
 }

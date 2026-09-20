@@ -1,13 +1,14 @@
 import { chromium } from "playwright";
 
-const baseUrl = process.env.CATALOGUE_URL ?? "http://localhost:3000/catalogue";
+const baseUrl = (process.env.CATALOGUE_URL ?? "http://localhost:3000").replace(/\/+$/, "");
+const printUrl = `${baseUrl}/catalogue/print`;
 const outputPath = process.argv[2] ?? "./gea-catalogue-2026.pdf";
 
 async function exportPdf() {
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
-    await page.goto(baseUrl, { waitUntil: "networkidle" });
+    await page.goto(printUrl, { waitUntil: "networkidle" });
     await page.emulateMedia({ media: "print" });
     await page.evaluate(async () => {
       await document.fonts.ready;

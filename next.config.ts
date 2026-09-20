@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
   },
   outputFileTracingIncludes: {
     "/api/catalogue/pdf": ["./node_modules/@sparticuz/chromium/bin/**"],
+    "/api/catalogue/pdf/cron": ["./node_modules/@sparticuz/chromium/bin/**"],
+    "/api/admin/pdf/generate": ["./node_modules/@sparticuz/chromium/bin/**"],
   },
 };
 

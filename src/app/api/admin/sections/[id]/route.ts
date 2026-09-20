@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/admin-api';
+import { markPdfOutdated } from '@/lib/pdf-status';
 import { NextRequest, NextResponse } from 'next/server';
 
 type Params = { id: string };
@@ -37,6 +38,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (!data) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  await markPdfOutdated();
   return NextResponse.json(data);
 }
 
@@ -48,5 +50,6 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   const supabase = createServiceClient();
   const { error } = await supabase.from('catalogue_sections').delete().eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  await markPdfOutdated();
   return NextResponse.json({ success: true });
 }

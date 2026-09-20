@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/supabase';
 import { deleteImage, STORAGE_BUCKETS, uploadImage } from '@/lib/storage';
 import { getUser } from '@/lib/auth';
+import { markPdfOutdated } from '@/lib/pdf-status';
 import { NextRequest, NextResponse } from 'next/server';
 
 type Params = { id: string; imageId: string };
@@ -22,6 +23,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .eq('id', imageId)
       .eq('product_id', id);
     if (error) return NextResponse.json({ error: 'Unable to set primary image.' }, { status: 500 });
+    await markPdfOutdated();
     return NextResponse.json({ success: true });
   }
 
@@ -36,6 +38,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .eq('id', imageId)
       .eq('product_id', id);
     if (error) return NextResponse.json({ error: 'Unable to reorder image.' }, { status: 500 });
+    await markPdfOutdated();
     return NextResponse.json({ success: true });
   }
 
@@ -78,6 +81,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<Pa
   if (error) return NextResponse.json({ error: 'Image record could not be updated.' }, { status: 500 });
 
   if (current.storage_path) await deleteImage(STORAGE_BUCKETS.products, current.storage_path);
+  await markPdfOutdated();
   return NextResponse.json(image);
 }
 
@@ -100,5 +104,6 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     .eq('product_id', id);
   if (error) return NextResponse.json({ error: 'Unable to delete image.' }, { status: 500 });
   if (current.storage_path) await deleteImage(STORAGE_BUCKETS.products, current.storage_path);
+  await markPdfOutdated();
   return NextResponse.json({ success: true });
 }

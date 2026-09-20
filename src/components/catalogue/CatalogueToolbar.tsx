@@ -18,8 +18,27 @@ export function CatalogueToolbar({
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [pdfPreparing, setPdfPreparing] = useState(false);
+  const [pdfMessage, setPdfMessage] = useState("");
   const [active, setActive] = useState("all");
   const timer = useRef<number | null>(null);
+
+  // Check whether a PDF has been generated yet so a brand-new catalogue can
+  // show a quiet "PDF preparing" state instead of a failed download.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/catalogue/pdf/status")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && data) setPdfPreparing(!data.available);
+      })
+      .catch(() => {
+        /* status endpoint unavailable — keep the button enabled */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -56,14 +75,19 @@ export function CatalogueToolbar({
 
   async function downloadPdf() {
     setDownloading(true);
+    setPdfMessage("");
     try {
       const response = await fetch("/api/catalogue/pdf");
-      if (!response.ok) throw new Error("PDF generation failed");
+      if (!response.ok) {
+        setPdfPreparing(true);
+        setPdfMessage("PDF preparing — please check back shortly.");
+        return;
+      }
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "gea-catalogue-2026.pdf";
+      link.download = "GEA-Product-Catalogue-2026.pdf";
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -101,15 +125,20 @@ export function CatalogueToolbar({
           Contents
         </Link>
 
-        <button
-          type="button"
-          onClick={downloadPdf}
-          disabled={downloading}
-          className="print-hidden catalogue-secondary label shrink-0 px-2.5 py-2 transition-colors disabled:cursor-wait disabled:opacity-60 sm:px-3"
-          title="Save the catalogue as a PDF"
-        >
-          {downloading ? "Preparing PDF..." : "Download PDF"}
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={downloadPdf}
+            disabled={downloading || pdfPreparing}
+            className="print-hidden catalogue-secondary label shrink-0 px-2.5 py-2 transition-colors disabled:cursor-wait disabled:opacity-60 sm:px-3"
+            title={pdfPreparing ? "The catalogue PDF has not been generated yet." : "Save the catalogue as a PDF"}
+          >
+            {downloading ? "Preparing PDF..." : pdfPreparing ? "PDF preparing..." : "Download PDF"}
+          </button>
+          {pdfMessage ? (
+            <span className="label hidden max-w-[20ch] text-[9px] text-[var(--muted)] sm:block">{pdfMessage}</span>
+          ) : null}
+        </div>
 
         <div className="relative ml-auto w-full max-w-[320px]">
           <form

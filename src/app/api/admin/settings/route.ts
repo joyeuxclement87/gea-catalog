@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/admin-api';
+import { markPdfOutdated } from '@/lib/pdf-status';
 import { NextRequest, NextResponse } from 'next/server';
 
 const FIELDS = [
@@ -43,6 +44,7 @@ export async function PATCH(request: NextRequest) {
       .select()
       .single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    await markPdfOutdated();
     return NextResponse.json(data);
   }
 
@@ -52,5 +54,6 @@ export async function PATCH(request: NextRequest) {
     .select()
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  await markPdfOutdated();
   return NextResponse.json(data);
 }

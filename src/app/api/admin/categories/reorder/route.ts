@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/admin-api';
+import { markPdfOutdated } from '@/lib/pdf-status';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -21,5 +22,6 @@ export async function POST(request: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  await markPdfOutdated();
   return NextResponse.json({ success: true });
 }

@@ -7,6 +7,7 @@ export const STORAGE_BUCKETS = {
   categories: 'category-images',
   cover: 'catalogue-cover',
   sections: 'catalogue-sections',
+  pdfs: 'catalogue-pdfs',
 } as const;
 
 export type StorageBucket = typeof STORAGE_BUCKETS[keyof typeof STORAGE_BUCKETS];
@@ -16,11 +17,19 @@ export async function ensureBucketsExist() {
   for (const bucket of buckets) {
     const { data: existing } = await supabase.storage.getBucket(bucket);
     if (!existing) {
-      await supabase.storage.createBucket(bucket, {
-        public: true,
-        fileSizeLimit: 5242880, // 5MB
-        allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
-      });
+      const options =
+        bucket === STORAGE_BUCKETS.pdfs
+          ? {
+              public: true,
+              fileSizeLimit: 209715200, // 200MB — A4 print PDFs comfortably fit
+              allowedMimeTypes: ['application/pdf'],
+            }
+          : {
+              public: true,
+              fileSizeLimit: 5242880, // 5MB
+              allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+            };
+      await supabase.storage.createBucket(bucket, options);
     }
   }
 }

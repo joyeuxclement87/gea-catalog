@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/admin-api';
 import { deleteImage, uploadImage, STORAGE_BUCKETS } from '@/lib/storage';
+import { markPdfOutdated } from '@/lib/pdf-status';
 import { NextRequest, NextResponse } from 'next/server';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -40,6 +41,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<P
   if (section.image_path && section.image_path !== uploaded.path) {
     await deleteImage(BUCKET, section.image_path);
   }
+  await markPdfOutdated();
   return NextResponse.json(data);
 }
 
@@ -58,5 +60,6 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     .update({ image_url: null, image_path: null })
     .eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  await markPdfOutdated();
   return NextResponse.json({ success: true });
 }

@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/admin-api';
+import { markPdfOutdated } from '@/lib/pdf-status';
 import { NextRequest, NextResponse } from 'next/server';
 
 function slugify(value: string): string {
@@ -37,5 +38,7 @@ export async function POST(request: NextRequest) {
 
   const { data, error } = await createServiceClient().from('catalogue_sections').insert(record).select().single();
   if (error) return NextResponse.json({ error: 'Unable to create section.' }, { status: 400 });
+
+  await markPdfOutdated();
   return NextResponse.json(data, { status: 201 });
 }

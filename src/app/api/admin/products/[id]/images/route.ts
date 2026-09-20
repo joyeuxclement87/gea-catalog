@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/supabase';
 import { generateProductImagePath, STORAGE_BUCKETS, uploadImage } from '@/lib/storage';
 import { getUser } from '@/lib/auth';
+import { markPdfOutdated } from '@/lib/pdf-status';
 import { NextRequest, NextResponse } from 'next/server';
 
 const MAX_IMAGES = 5;
@@ -65,5 +66,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<P
     .single();
 
   if (error) return NextResponse.json({ error: 'Image record could not be saved.' }, { status: 500 });
+  await markPdfOutdated();
   return NextResponse.json(image, { status: 201 });
 }

@@ -1,53 +1,58 @@
-import chromium from "@sparticuz/chromium";
-import { chromium as playwrightChromium } from "playwright-core";
 import { NextResponse } from "next/server";
+import { createServiceClient } from "@/lib/supabase";
+import { getPdfStatus, PDF_BUCKET, PDF_FILE_PATH, PDF_FILE_NAME } from "@/lib/pdf-status";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const dynamic = "force-dynamic";
 
-export async function GET(request: Request) {
-  let browser: Awaited<ReturnType<typeof playwrightChromium.launch>> | null = null;
+/**
+ * Public download endpoint for the one current catalogue PDF. It always serves
+ * the latest successfully generated file (even while a new one is generating)
+ * and never destroys or regenerates on demand. When no PDF exists yet, it
+ * returns 404 so the UI can show a "PDF preparing" state.
+ */
+export async function GET() {
+  const supabase = createServiceClient();
+  const status = await getPdfStatus();
 
-  try {
-    browser = await playwrightChromium.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath(),
-      headless: true,
-    });
-    const catalogueUrl = new URL("/catalogue", request.url);
-    const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
-    await page.goto(catalogueUrl.toString(), { waitUntil: "networkidle" });
-    await page.emulateMedia({ media: "print" });
-    await page.evaluate(async () => {
-      await document.fonts.ready;
-      await Promise.all(
-        Array.from(document.images).map((image) => {
-          if (image.complete) return Promise.resolve();
-          return new Promise<void>((resolve) => {
-            image.addEventListener("load", () => resolve(), { once: true });
-            image.addEventListener("error", () => resolve(), { once: true });
-          });
-        }),
-      );
-    });
-
-    const pdf = await page.pdf({
-      format: "A4",
-      printBackground: true,
-      preferCSSPageSize: true,
-    });
-
-    return new NextResponse(new Uint8Array(pdf), {
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": 'attachment; filename="gea-catalogue-2026.pdf"',
-        "Cache-Control": "no-store",
+  const hasPdf = Boolean(status && status.generated_at && (status.file_size ?? 0) > 0);
+  if (!status || !hasPdf) {
+    return NextResponse.json(
+      {
+        error: "PDF_PREPARING",
+        message: "The catalogue PDF is being prepared. Please check back shortly.",
       },
-    });
-  } catch (error) {
-    console.error("Catalogue PDF download failed", error);
-    return NextResponse.json({ error: "Unable to generate the catalogue PDF." }, { status: 500 });
-  } finally {
-    await browser?.close();
+      { status: 404 },
+    );
   }
+
+  const { data, error } = await supabase.storage.from(PDF_BUCKET).download(PDF_FILE_PATH);
+  if (error || !data) {
+    return NextResponse.json(
+      {
+        error: "PDF_UNAVAILABLE",
+        message: "The catalogue PDF is temporarily unavailable. Please try again in a moment.",
+      },
+      { status: 404 },
+    );
+  }
+
+  const bytes = Buffer.from(await data.arrayBuffer());
+
+  return new NextResponse(new Uint8Array(bytes), {
+    headers: {
+      "Content-Type": "application/pdf",
+      "Content-Length": String(bytes.byteLength),
+      "Content-Disposition": `attachment; filename="${PDF_FILE_NAME}"`,
+      // The file is replaced in place at the same path — revalidate on every
+      // request so browsers/CDNs never keep serving an outdated copy, while
+      // the visible filename stays fixed.
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+      "Last-Modified": status.generated_at
+        ? new Date(status.generated_at).toUTCString()
+        : new Date().toUTCString(),
+    },
+  });
 }

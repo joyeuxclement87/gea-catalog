@@ -165,9 +165,38 @@ body {
   text-decoration-color: var(--brand-blue-dark);
 }
 
+/* A4 pages for print/PDF output, with a running GEA-blue page-number footer.
+   Chromium supports @page margin boxes (Chrome 131+), so /catalogue/print gets
+   a real "Page N / M" footer; older browsers simply ignore the margin box. */
 @page {
   size: A4;
   margin: 14mm 12mm 16mm;
+  @bottom-center {
+    content: "GEA Product Catalogue 2026  ·  " counter(page) " / " counter(pages);
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    font-size: 6.5pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--brand-blue, #145aa8);
+  }
+  @bottom-left {
+    content: "Catalogue 2026";
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    font-size: 6.5pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #75807a;
+  }
+}
+
+@page :first {
+  margin-top: 10mm;
+  @bottom-center {
+    content: none;
+  }
+  @bottom-left {
+    content: none;
+  }
 }
 
 @media print {
@@ -279,4 +308,101 @@ body {
     color: inherit;
     text-decoration: none;
   }
+}
+
+/* ── Print document (/catalogue/print) ──────────────────────────────────────
+   The dedicated print route used by the automatic PDF generator. Same data as
+   the web catalogue, laid out for A4 with explicit page breaks. */
+
+.pdf-root {
+  background: #ffffff;
+  color: var(--ink);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  padding: 0 12mm;
+}
+
+.pdf-label {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 6.5pt;
+  line-height: 1.5;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.pdf-page {
+  break-before: page;
+  page-break-before: always;
+}
+
+.pdf-cover {
+  min-height: 260mm;
+  break-before: auto;
+  page-break-before: auto;
+  break-after: page;
+  page-break-after: always;
+}
+
+.pdf-contents {
+  break-after: page;
+  page-break-after: always;
+}
+
+.pdf-cover-title {
+  font-size: 44pt;
+}
+
+.pdf-cover-intro,
+.pdf-section-intro,
+.pdf-category-intro,
+.pdf-contact-intro {
+  font-size: 10.5pt;
+}
+
+.pdf-contents-title {
+  font-size: 26pt;
+}
+
+.pdf-section-title,
+.pdf-category-title {
+  font-size: 24pt;
+}
+
+.pdf-cover-image-wrap {
+  height: 78mm;
+}
+
+.pdf-cat-img {
+  height: 30mm;
+}
+
+.pdf-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4mm;
+  background: transparent;
+}
+
+.pdf-card {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  box-shadow: none !important;
+}
+
+.pdf-card-img {
+  aspect-ratio: 3 / 4;
+}
+
+.pdf-contact {
+  min-height: 250mm;
+  break-after: auto;
+  page-break-after: auto;
+}
+
+.pdf-cover,
+.pdf-contents,
+.pdf-section {
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
