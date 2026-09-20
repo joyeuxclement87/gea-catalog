@@ -370,7 +370,65 @@ body {
 }
 
 .pdf-cover-image-wrap {
-  height: 78mm;
+  height: 58mm;
+}
+
+.pdf-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2.5mm;
+}
+
+.pdf-strip-tile {
+  position: relative;
+  height: 26mm;
+  overflow: hidden;
+  border: 0.25mm solid var(--line);
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.pdf-strip-tile--blue {
+  background: var(--brand-blue);
+  border-color: var(--brand-blue);
+}
+
+.pdf-strip-tile--paper {
+  background: var(--paper-2);
+}
+
+.pdf-strip-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(6, 18, 36, 0.74), rgba(6, 18, 36, 0.1) 55%, rgba(6, 18, 36, 0));
+}
+
+.pdf-strip-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 2.5mm;
+}
+
+.pdf-strip-label {
+  display: block;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 7pt;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+}
+
+.pdf-strip-caption-txt {
+  display: block;
+  margin-top: 0.8mm;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 5.5pt;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .pdf-cat-img {

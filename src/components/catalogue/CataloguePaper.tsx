@@ -9,6 +9,7 @@ import { ProductCard } from "./ProductCard";
 import { CoverImage, CategoryImage } from "./ProductImage";
 import { CatalogueToolbar } from "./CatalogueToolbar";
 import { PageNav } from "./PageNav";
+import { getCoverFeatures } from "@/lib/cover-features";
 
 type Props = {
   categories: Category[];
@@ -23,6 +24,7 @@ export async function CataloguePaper({ categories, products, sections = [] }: Pr
 
   const settings = await getCatalogueSettings();
   const coverImage = settings.cover_image_url || "/images/cover/cover.jpg";
+  const coverFeatures = getCoverFeatures(categories, products);
 
   const searchEntries = products.map((p) => ({
     name: p.name,
@@ -76,6 +78,35 @@ export async function CataloguePaper({ categories, products, sections = [] }: Pr
         <div className="px-6 sm:px-12">
           <div className="relative aspect-[4/3] overflow-hidden border border-[var(--line-strong)] bg-[var(--paper-2)] sm:aspect-[16/9]">
             <CoverImage imageUrl={coverImage} className="object-cover" />
+          </div>
+
+          {/* two-tone feature strip — real product/category photos with branded
+              block fallback so the band reads as intentional on sparse data */}
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {coverFeatures.map((f, i) => (
+              <div
+                key={`${i}-${f.label}`}
+                className={`relative aspect-[3/2] overflow-hidden border ${
+                  f.tone === "blue" ? "border-[var(--brand-blue)] bg-[var(--brand-blue)]" : "border-[var(--line-strong)] bg-[var(--paper-2)]"
+                }`}
+              >
+                {f.image ? (
+                  <Image
+                    src={f.image}
+                    alt={f.label}
+                    fill
+                    sizes="(min-width: 640px) 33vw, 50vw"
+                    className="object-cover"
+                    decoding="async"
+                  />
+                ) : null}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" aria-hidden />
+                <p className="absolute inset-x-0 bottom-0 px-3 pb-2.5">
+                  <span className="block text-[12px] font-semibold leading-tight text-white">{f.label}</span>
+                  <span className="mt-0.5 block text-[8.5px] uppercase tracking-[0.16em] text-white/75">{f.caption}</span>
+                </p>
+              </div>
+            ))}
           </div>
         </div>
 

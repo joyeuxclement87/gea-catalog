@@ -5,6 +5,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { getCatalogueSettings } from "@/lib/catalog-settings";
 import { ProductPlaceholder, CategoryPlaceholder, CoverPlaceholder } from "./Placeholder";
 import { PrintImage } from "./PrintImage";
+import { getCoverFeatures } from "@/lib/cover-features";
 
 type Props = {
   categories: Category[];
@@ -21,6 +22,7 @@ export async function CataloguePrint({ categories, products, sections = [] }: Pr
   const byCategory = (slug: string) => products.filter((p) => p.categorySlug === slug);
   const settings = await getCatalogueSettings();
   const coverImage = settings.cover_image_url || "/images/cover/cover.jpg";
+  const coverFeatures = getCoverFeatures(categories, products);
 
   return (
     <div className="pdf-root mx-auto max-w-[1280px] bg-white">
@@ -42,7 +44,7 @@ export async function CataloguePrint({ categories, products, sections = [] }: Pr
           </p>
         </div>
 
-        <div className="mt-[34mm]">
+        <div className="mt-[26mm]">
           <p className="pdf-label font-semibold tracking-[0.34em] text-[var(--brand-blue)]">GEA</p>
           <h1 className="pdf-cover-title mt-2 font-serif font-[340] leading-[0.86] tracking-[-0.04em] text-[var(--ink)]">
             Product
@@ -58,8 +60,35 @@ export async function CataloguePrint({ categories, products, sections = [] }: Pr
           </p>
         </div>
 
-        <div className="pdf-cover-image-wrap relative mt-[10mm] border border-[var(--line-strong)] bg-[var(--paper-2)]">
+        <div className="pdf-cover-image-wrap relative mt-[8mm] border border-[var(--line-strong)] bg-[var(--paper-2)]">
           <PrintImage src={coverImage} alt="Product catalogue cover" className="h-full w-full object-cover" fallback={<CoverPlaceholder />} />
+        </div>
+
+        {/* two-tone feature strip — real product/category photos, branded
+            blocks as fallback so the band is always full and intentional */}
+        <div className="pdf-strip mt-[5mm]">
+          {coverFeatures.map((feature, i) => (
+            <div
+              key={`${i}-${feature.label}`}
+              className={`pdf-strip-tile ${feature.tone === "blue" ? "pdf-strip-tile--blue" : "pdf-strip-tile--paper"}`}
+            >
+              {feature.image ? (
+                <PrintImage
+                  src={feature.image}
+                  alt={feature.label}
+                  className="h-full w-full object-cover"
+                  fallback={<div className="h-full w-full" />}
+                />
+              ) : (
+                <div className="h-full w-full" />
+              )}
+              <div className="pdf-strip-scrim" aria-hidden />
+              <p className="pdf-strip-caption">
+                <span className="pdf-strip-label">{feature.label}</span>
+                <span className="pdf-strip-caption-txt">{feature.caption}</span>
+              </p>
+            </div>
+          ))}
         </div>
 
         <div className="flex items-center justify-between pt-[7mm]">
