@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getCategories, getProducts, getOrderedCategories } from "@/lib/catalog-supabase";
+import { getCategories, getProducts, getOrderedCategories, getPublishedSections } from "@/lib/catalog-supabase";
 import { CataloguePaper } from "@/components/catalogue/CataloguePaper";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -21,6 +21,7 @@ export default async function CataloguePage() {
   const categories = await getCategories();
   const products = await getProducts();
   const orderedCategories = getOrderedCategories(categories);
+  const sections = await getPublishedSections();
 
-  return <CataloguePaper categories={orderedCategories} products={products} />;
+  return <CataloguePaper categories={orderedCategories} products={products} sections={sections} />;
 }

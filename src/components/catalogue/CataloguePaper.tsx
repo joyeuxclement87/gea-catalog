@@ -1,6 +1,7 @@
-import type { Category, Product } from "@/lib/supabase-types";
+import type { Category, CatalogueSection, Product } from "@/lib/supabase-types";
 import Image from "next/image";
 import { IconMail, IconMapPin, IconPhone, IconWorld } from "@tabler/icons-react";
+import { QRCodeSVG } from "qrcode.react";
 import { folio, sectionCount } from "@/lib/catalog-supabase";
 import { CatalogueShell, Hairline, FolioFooter } from "./CatalogueShell";
 import { ProductCard } from "./ProductCard";
@@ -11,12 +12,13 @@ import { PageNav } from "./PageNav";
 type Props = {
   categories: Category[];
   products: Product[];
+  sections?: CatalogueSection[];
 };
 
-export function CataloguePaper({ categories, products }: Props) {
+export function CataloguePaper({ categories, products, sections = [] }: Props) {
   const byCategory = (slug: string) => products.filter((p) => p.categorySlug === slug);
-  const sectionIds = ["cover", "contents", ...categories.map((c) => `cat-${c.slug}`), "contact"];
-  const total = sectionCount(categories);
+  const sectionIds = ["cover", "contents", ...sections.map((s) => `custom-${s.slug}`), ...categories.map((c) => `cat-${c.slug}`), "contact"];
+  const total = sectionCount(categories) + sections.length;
 
   const searchEntries = products.map((p) => ({
     name: p.name,
@@ -42,15 +44,15 @@ export function CataloguePaper({ categories, products }: Props) {
               height={1588}
               className="h-10 w-auto sm:h-12"
             />
-            <p className="label pt-2 text-[var(--muted)]">Product catalogue &#183; 2026</p>
+            <p className="label pt-2 text-[var(--brand-blue)]">Global Engineering Agency &#183; 2026</p>
           </div>
 
           <h1 className="balance mt-24 text-center font-serif text-[clamp(48px,12vw,120px)] font-[380] leading-[0.88] tracking-[-0.04em] text-[var(--ink)] sm:mt-32">
             Product <em className="font-[320]">Catalogue</em>
           </h1>
 
-          <p className="mt-8 text-center label text-[var(--muted)] tracking-[0.24em]">
-            Edition One &#183; 2026
+          <p className="mx-auto mt-8 max-w-[38ch] text-center font-serif text-[16px] leading-relaxed text-[var(--ink-2)]">
+            A considered selection of products for building, engineering, safety and everyday infrastructure.
           </p>
         </div>
 
@@ -61,8 +63,13 @@ export function CataloguePaper({ categories, products }: Props) {
         </div>
 
         <div className="flex items-center justify-between px-6 py-6 sm:px-12">
-          <p className="label text-[var(--muted)]">General Engineering</p>
+          <p className="label text-[var(--brand-blue)]">General Engineering</p>
           <p className="label tabular-nums text-[var(--muted)]">01</p>
+        </div>
+        <div className="flex justify-center px-6 pb-12 pt-2 sm:px-12">
+          <a href="#contents" className="catalogue-primary inline-flex items-center px-6 py-3 label transition-colors">
+            Explore catalogue &#8595;
+          </a>
         </div>
       </section>
 
@@ -85,7 +92,7 @@ export function CataloguePaper({ categories, products }: Props) {
             {categories.map((c, i) => (
               <li key={c.slug} className="border-b border-[var(--line)]">
                 <a href={`#cat-${c.slug}`} className="group flex items-baseline gap-4 py-5 transition-colors hover:bg-[var(--paper-2)] sm:gap-6">
-                  <span className="w-8 shrink-0 label tabular-nums text-[var(--muted)]">
+                  <span className="w-8 shrink-0 label tabular-nums text-[var(--brand-blue)]">
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <span className="font-serif text-[16px] font-[470] leading-snug tracking-[-0.01em] text-[var(--ink)] sm:text-[18px]">
@@ -112,6 +119,24 @@ export function CataloguePaper({ categories, products }: Props) {
 
       <Hairline />
 
+      {sections.map((section, i) => (
+        <section key={section.id} id={`custom-${section.slug}`} className="catalogue-category scroll-mt-12">
+          <div className="px-6 pb-10 pt-14 sm:px-10 sm:pb-14 sm:pt-20">
+            <div className="flex items-center gap-4">
+              <span className="label tabular-nums text-[var(--brand-blue)]">{String(i + 1).padStart(2, "0")}</span>
+              <span className="h-px w-8 bg-[var(--brand-blue)]" aria-hidden />
+              <span className="label text-[var(--muted)]">Catalogue section</span>
+            </div>
+            <h2 className="mt-5 max-w-[18ch] font-serif text-[clamp(32px,6.5vw,50px)] font-[440] leading-[0.96] text-[var(--ink)]">{section.title}</h2>
+            {section.description ? <p className="mt-4 max-w-[52ch] font-serif text-[15px] leading-relaxed text-[var(--ink-2)]">{section.description}</p> : null}
+          </div>
+          <div className="relative aspect-[16/6] overflow-hidden border-y border-[var(--line)] bg-[var(--brand-blue-light)] sm:aspect-[16/5]">
+            {section.image_url ? <img src={section.image_url} alt={section.title} className="h-full w-full object-cover" /> : <div className="flex h-full items-center px-6 sm:px-10"><span className="label text-[var(--brand-blue)]">GEA catalogue section</span></div>}
+          </div>
+          <Hairline />
+        </section>
+      ))}
+
       {/* ── CATEGORY SECTIONS ───────────────────────────────── */}
       {categories.map((c, i) => {
         const productsInCategory = byCategory(c.slug);
@@ -122,7 +147,7 @@ export function CataloguePaper({ categories, products }: Props) {
             {/* divider — reads as a new chapter */}
             <div className="px-6 pt-14 sm:px-10 sm:pt-20">
               <div className="flex items-center gap-4">
-                <span className="label tabular-nums text-[var(--accent)]">{folioNum}</span>
+                <span className="label tabular-nums text-[var(--brand-blue)]">{folioNum}</span>
                 <span className="h-px w-8 bg-[var(--line-strong)]" aria-hidden />
                 <span className="label text-[var(--muted)]">
                   Section {sectionNum} &#183; {productsInCategory.length} product{productsInCategory.length === 1 ? "" : "s"}
@@ -134,7 +159,7 @@ export function CataloguePaper({ categories, products }: Props) {
               {c.description ? (
                 <p className="mt-4 max-w-[52ch] font-serif text-[15px] leading-relaxed text-[var(--ink-2)]">{c.description}</p>
               ) : null}
-              <div className="mt-6 h-px w-16 bg-[var(--ink)]" aria-hidden />
+              <div className="mt-6 h-px w-16 bg-[var(--brand-blue)]" aria-hidden />
             </div>
 
             <div className="relative mt-10 aspect-[16/6] overflow-hidden border-y border-[var(--line)] bg-[var(--paper-2)] sm:aspect-[16/5]">
@@ -175,9 +200,10 @@ export function CataloguePaper({ categories, products }: Props) {
             <span className="label text-[var(--muted)]">Closing note</span>
           </div>
 
-          <div className="mt-8 grid gap-10 border-t border-[var(--line)] pt-8 sm:grid-cols-2">
+          <div className="mt-8 grid gap-10 border-t border-[var(--brand-blue)] pt-8 sm:grid-cols-[1fr_auto]">
             <div>
-              <h3 className="font-serif text-[22px] font-[450] tracking-[-0.01em] text-[var(--ink)]">Need more information?</h3>
+              <p className="label text-[var(--brand-blue)]">Thank you for exploring our catalogue</p>
+              <h3 className="mt-2 font-serif text-[clamp(28px,5vw,42px)] font-[450] tracking-[-0.02em] text-[var(--ink)]">Let&apos;s connect.</h3>
               <p className="mt-3 max-w-[44ch] font-sans text-[13.5px] leading-relaxed text-[var(--ink-2)]">
                 For product information, technical details, and quotations, contact Global Engineering Agency
                 directly. This catalogue is for product reference; pricing and ordering are handled separately.
@@ -207,6 +233,10 @@ export function CataloguePaper({ categories, products }: Props) {
               </address>
             </div>
             <div className="sm:justify-self-end">
+              <div className="mb-6 w-fit border border-[var(--line)] bg-white p-3">
+                <QRCodeSVG value="https://www.globalengineeringagency.com" size={132} bgColor="#ffffff" fgColor="#145aa8" includeMargin />
+                <p className="mt-2 max-w-[18ch] text-center label text-[var(--brand-blue)]">Scan to view the catalogue online</p>
+              </div>
               <p className="label text-[9.5px] text-[var(--muted)]">Edition</p>
               <p className="mt-2 font-serif text-[15px] leading-relaxed text-[var(--ink)]">
                 GEA Product Catalogue &#8212; Edition One, 2026
@@ -215,7 +245,7 @@ export function CataloguePaper({ categories, products }: Props) {
               </p>
               <a
                 href="#cover"
-                className="mt-6 inline-block font-sans text-[11px] font-medium tracking-[0.18em] text-[var(--ink)] underline decoration-[var(--line-strong)] underline-offset-6 transition-colors hover:text-[var(--accent)]"
+                className="catalogue-secondary mt-6 inline-block px-4 py-2 font-sans text-[11px] font-medium tracking-[0.18em] transition-colors"
               >
                 BACK TO COVER
               </a>

@@ -8,6 +8,7 @@ const navigation = [
   { href: '/admin', label: 'Dashboard', icon: IconDashboard },
   { href: '/admin/products', label: 'Products', icon: IconShoppingBag },
   { href: '/admin/categories', label: 'Categories', icon: IconCategory },
+  { href: '/admin/sections', label: 'Sections', icon: IconCategory },
   { href: '/admin/media', label: 'Media', icon: IconPhoto },
   { href: '/admin/settings', label: 'Catalogue settings', icon: IconAdjustments },
 ];
@@ -28,8 +29,8 @@ export default function AdminNav() {
             aria-current={active ? 'page' : undefined}
             className={`flex items-center gap-3 px-3 py-2.5 text-sm transition-colors ${
               active
-                ? 'bg-[var(--paper-2)] font-medium text-[var(--ink)]'
-                : 'text-[var(--muted)] hover:bg-[var(--paper-2)] hover:text-[var(--ink)]'
+                ? 'bg-[var(--brand-blue-light)] font-medium text-[var(--brand-blue-dark)]'
+                : 'text-[var(--muted)] hover:bg-[var(--brand-blue-light)] hover:text-[var(--brand-blue-dark)]'
             }`}
           >
             <Icon size={17} stroke={1.7} aria-hidden />

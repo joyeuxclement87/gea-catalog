@@ -24,6 +24,19 @@ export interface Category {
   productCount?: number;
 }
 
+export interface CatalogueSection {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  image_url: string | null;
+  image_path: string | null;
+  display_order: number;
+  status: CategoryStatus;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Product {
   id: string;
   name: string;

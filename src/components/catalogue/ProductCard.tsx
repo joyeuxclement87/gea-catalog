@@ -26,7 +26,7 @@ export function ProductCard({ product }: { product: Product }) {
             {product.category?.name ?? product.categorySlug}
           </span>
           <span
-            className="label tabular-nums text-[9px] text-[var(--ink-2)] opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+            className="label tabular-nums text-[9px] text-[var(--brand-blue)] opacity-0 transition-opacity duration-200 group-hover:opacity-100"
             aria-hidden
           >
             View &#8594;

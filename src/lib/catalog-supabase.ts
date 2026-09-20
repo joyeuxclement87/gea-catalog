@@ -1,5 +1,5 @@
 import { createServerClient, createServiceClient } from './supabase';
-import type { Category, Product, ProductImage, ProductWithCategory } from './supabase-types';
+import type { Category, CatalogueSection, Product, ProductImage, ProductWithCategory } from './supabase-types';
 import { getProducts as getLocalProducts, getCategories as getLocalCategories, getOrderedCategories as getLocalOrderedCategories } from './catalog';
 
 async function getClient() {
@@ -85,6 +85,21 @@ export async function getCategories(): Promise<Category[]> {
     .order('display_order', { ascending: true });
 
   if (error) throw error;
+  return data ?? [];
+}
+
+export async function getPublishedSections(): Promise<CatalogueSection[]> {
+  if (!isSupabaseConfigured()) return [];
+  const supabase = await getClient();
+  const { data, error } = await supabase
+    .from('catalogue_sections')
+    .select('*')
+    .eq('status', 'published')
+    .order('display_order', { ascending: true });
+  if (error) {
+    if (error.code === 'PGRST205') return [];
+    throw error;
+  }
   return data ?? [];
 }
 

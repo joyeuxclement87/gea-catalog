@@ -44,6 +44,22 @@ CREATE TABLE product_images (
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE catalogue_sections (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    description TEXT,
+    image_url TEXT,
+    image_path TEXT,
+    display_order INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('published', 'draft')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_catalogue_sections_order ON catalogue_sections(display_order);
+CREATE INDEX idx_catalogue_sections_status ON catalogue_sections(status);
+
 CREATE INDEX idx_product_images_product_order ON product_images(product_id, display_order);
 CREATE UNIQUE INDEX idx_product_images_one_primary ON product_images(product_id) WHERE is_primary = true;
 
@@ -126,6 +142,7 @@ CREATE TRIGGER update_products_updated_at BEFORE UPDATE ON products
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_images ENABLE ROW LEVEL SECURITY;
+ALTER TABLE catalogue_sections ENABLE ROW LEVEL SECURITY;
 
 -- Public read policies (only published)
 CREATE POLICY "Public can read published categories" ON categories
@@ -141,6 +158,9 @@ CREATE POLICY "Public can read product images" ON product_images
                 WHERE p.id = product_images.product_id AND p.status = 'published'
             )
         );
+
+    CREATE POLICY "Public can read published catalogue sections" ON catalogue_sections
+        FOR SELECT USING (status = 'published');
 
 -- Admin policies (will be restricted via service role or custom claims)
 -- Service role bypasses RLS automatically

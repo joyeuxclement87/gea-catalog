@@ -47,33 +47,33 @@ export function PageNav({ sectionIds }: Props) {
   const goTop = () => window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
 
   const btn =
-    "flex items-center gap-1.5 rounded-full px-3 py-1.5 label text-[var(--ink)] transition-colors hover:bg-black/[0.05] disabled:opacity-25 disabled:hover:bg-transparent";
+    "flex items-center gap-2 rounded-full px-4 py-2.5 text-[0.6875rem]! uppercase tracking-[0.14em] font-medium text-[var(--ink)] transition-colors hover:bg-black/[0.05] disabled:opacity-25 disabled:hover:bg-transparent";
 
   return (
-    <div className="print-hidden pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 pb-3 sm:pb-6">
+    <div className="print-hidden pointer-events-none fixed inset-x-0 bottom-10 z-50 flex justify-center px-3 sm:bottom-14">
       <nav
-        className="pointer-events-auto flex items-center gap-0.5 rounded-full border border-[var(--line-strong)] bg-white/95 py-1 pl-1 pr-1 shadow-[0_12px_36px_rgba(20,18,12,0.16)] backdrop-blur"
+        className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-[var(--line-strong)] bg-white/95 py-2.5 pl-2.5 pr-2.5 shadow-[0_14px_40px_rgba(23,32,29,0.18)] backdrop-blur"
         aria-label="Catalogue pages"
       >
         <button type="button" onClick={() => canPrev && go(sectionIds[current - 1])} disabled={!canPrev} className={btn} aria-label="Previous section">
-          <IconChevronLeft size={15} stroke={1.7} aria-hidden />
+          <IconChevronLeft size={18} stroke={1.8} aria-hidden />
           <span className="hidden sm:inline">Previous</span>
         </button>
         <button type="button" onClick={() => go("contents")} className={`${btn} text-[var(--muted)] hover:text-[var(--ink)]`} aria-label="Open contents">
-          <IconBook2 size={15} stroke={1.7} aria-hidden />
+          <IconBook2 size={18} stroke={1.8} aria-hidden />
           <span className="hidden sm:inline">Contents</span>
         </button>
-        <span className="px-2.5 label tabular-nums tracking-wide text-[var(--muted)]" aria-live="polite">
-          <span className="font-medium text-[var(--ink)]">{folio(current + 1)}</span>
+        <span className="px-3 text-[0.6875rem]! uppercase tracking-[0.16em] tabular-nums font-medium text-[var(--muted)]" aria-live="polite">
+          <span className="font-semibold text-[var(--brand-blue)]">{folio(current + 1)}</span>
           <span className="text-[var(--muted-2)]"> / {folio(total)}</span>
         </span>
         <button type="button" onClick={() => canNext && go(sectionIds[current + 1])} disabled={!canNext} className={btn} aria-label="Next section">
           <span className="hidden sm:inline">Next</span>
-          <IconChevronRight size={15} stroke={1.7} aria-hidden />
+          <IconChevronRight size={18} stroke={1.8} aria-hidden />
         </button>
         {showTop ? (
           <button type="button" onClick={goTop} className={`${btn} border-l border-[var(--line)] text-[var(--accent)]`} aria-label="Back to top" title="Back to top">
-            <IconArrowUp size={15} stroke={1.7} aria-hidden />
+            <IconArrowUp size={18} stroke={1.8} aria-hidden />
           </button>
         ) : null}
       </nav>

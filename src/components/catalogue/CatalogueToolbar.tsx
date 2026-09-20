@@ -67,7 +67,7 @@ export function CatalogueToolbar({ products }: { products: SearchEntry[] }) {
           type="button"
           onClick={downloadPdf}
           disabled={downloading}
-          className="print-hidden label shrink-0 border border-[var(--line-strong)] px-2.5 py-2 text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:cursor-wait disabled:opacity-60 sm:px-3"
+          className="print-hidden catalogue-secondary label shrink-0 px-2.5 py-2 transition-colors disabled:cursor-wait disabled:opacity-60 sm:px-3"
           title="Save the catalogue as a PDF"
         >
           {downloading ? "Preparing PDF..." : "Download PDF"}
@@ -81,7 +81,7 @@ export function CatalogueToolbar({ products }: { products: SearchEntry[] }) {
               e.preventDefault();
               if (results && results[0]) router.push(results[0].href);
             }}
-            className="flex items-center gap-2 border border-[var(--line)] bg-[var(--paper-2)] px-3 py-2 transition-colors focus-within:border-[var(--accent)] focus-within:bg-white"
+            className="flex items-center gap-2 border border-[var(--line)] bg-[var(--paper-2)] px-3 py-2 transition-colors focus-within:border-[var(--brand-blue)] focus-within:bg-white"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-[var(--muted)]" aria-hidden>
               <circle cx="11" cy="11" r="7" />
@@ -127,7 +127,7 @@ export function CatalogueToolbar({ products }: { products: SearchEntry[] }) {
                         </span>
                         <span className="min-w-0">
                           <span className="block truncate font-serif text-[14px] leading-snug text-[var(--ink)]">{p.name}</span>
-                          <span className="label mt-0.5 block truncate text-[9px] text-[var(--muted)]">{p.category}</span>
+                          <span className="label mt-0.5 block truncate text-[9px] text-[var(--brand-blue)]">{p.category}</span>
                         </span>
                       </Link>
                     </li>

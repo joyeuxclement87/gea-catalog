@@ -11,8 +11,11 @@
   --muted-2: #aab3ae;
   --line: #e2e7e3;
   --line-strong: #cbd4ce;
-  --accent: #286153;
-  --focus: #286153;
+  --brand-blue: #145aa8;
+  --brand-blue-dark: #0d3970;
+  --brand-blue-light: #eaf2fb;
+  --accent: var(--brand-blue);
+  --focus: var(--brand-blue);
 }
 
 @theme inline {
@@ -27,6 +30,9 @@
   --color-line-strong: var(--line-strong);
   --color-accent: var(--accent);
   --color-focus: var(--focus);
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-blue-dark: var(--brand-blue-dark);
+  --color-brand-blue-light: var(--brand-blue-light);
   --font-sans: var(--font-sans);
   --font-serif: var(--font-serif);
 }
@@ -115,6 +121,24 @@ body {
 
 .balance {
   text-wrap: balance;
+}
+
+.catalogue-primary {
+  background: var(--brand-blue);
+  color: white;
+}
+
+.catalogue-primary:hover {
+  background: var(--brand-blue-dark);
+}
+
+.catalogue-secondary {
+  border: 1px solid var(--brand-blue);
+  color: var(--brand-blue);
+}
+
+.catalogue-secondary:hover {
+  background: var(--brand-blue-light);
 }
 
 @page {
