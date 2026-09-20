@@ -1,5 +1,6 @@
 import type { Category, Product } from "@/lib/supabase-types";
 import Image from "next/image";
+import { IconMail, IconMapPin, IconPhone, IconWorld } from "@tabler/icons-react";
 import { folio, sectionCount } from "@/lib/catalog-supabase";
 import { CatalogueShell, Hairline, FolioFooter } from "./CatalogueShell";
 import { ProductCard } from "./ProductCard";
@@ -177,9 +178,32 @@ export function CataloguePaper({ categories, products }: Props) {
             <div>
               <h3 className="font-serif text-[22px] font-[450] tracking-[-0.01em] text-[var(--ink)]">Need more information?</h3>
               <p className="mt-3 max-w-[44ch] font-sans text-[13.5px] leading-relaxed text-[var(--ink-2)]">
-                Contact details and technical information are available directly from GEA. This catalogue is for
-                product reference; pricing and ordering are handled separately.
+                For product information, technical details, and quotations, contact Global Engineering Agency
+                directly. This catalogue is for product reference; pricing and ordering are handled separately.
               </p>
+              <address className="mt-5 space-y-2 not-italic font-sans text-[12px] leading-relaxed tracking-[0.04em] text-[var(--muted)]">
+                <a className="flex items-start gap-2 transition-colors hover:text-[var(--accent)]" href="tel:+250788632620">
+                  <IconPhone size={15} stroke={1.5} className="mt-0.5 shrink-0" aria-hidden />
+                  <span>+250 788 632 620</span>
+                </a>
+                <span className="flex items-start gap-2">
+                  <IconMapPin size={15} stroke={1.5} className="mt-0.5 shrink-0" aria-hidden />
+                  <span>Umukindo House, ground floor, 5 doors from BK</span>
+                </span>
+                <a className="flex items-start gap-2 transition-colors hover:text-[var(--accent)]" href="mailto:info@globalengineeringagency.com">
+                  <IconMail size={15} stroke={1.5} className="mt-0.5 shrink-0" aria-hidden />
+                  <span>info@globalengineeringagency.com</span>
+                </a>
+                <a
+                  className="flex items-start gap-2 transition-colors hover:text-[var(--accent)]"
+                  href="https://www.globalengineeringagency.com"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <IconWorld size={15} stroke={1.5} className="mt-0.5 shrink-0" aria-hidden />
+                  <span>www.globalengineeringagency.com</span>
+                </a>
+              </address>
             </div>
             <div className="sm:justify-self-end">
               <p className="label text-[9.5px] text-[var(--muted)]">Edition</p>

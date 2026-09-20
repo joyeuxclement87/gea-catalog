@@ -10,6 +10,7 @@ export function CatalogueToolbar({ products }: { products: SearchEntry[] }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const timer = useRef<number | null>(null);
 
   const results = useMemo(() => {
@@ -21,6 +22,25 @@ export function CatalogueToolbar({ products }: { products: SearchEntry[] }) {
   }, [products, query]);
 
   const showPanel = focused && results !== null;
+
+  async function downloadPdf() {
+    setDownloading(true);
+    try {
+      const response = await fetch("/api/catalogue/pdf");
+      if (!response.ok) throw new Error("PDF generation failed");
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "gea-catalogue-2026.pdf";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   return (
     <div className="print-hidden sticky top-0 z-40 border-b border-[var(--line)] bg-white/90 backdrop-blur-md">
@@ -42,6 +62,16 @@ export function CatalogueToolbar({ products }: { products: SearchEntry[] }) {
         >
           Contents
         </Link>
+
+        <button
+          type="button"
+          onClick={downloadPdf}
+          disabled={downloading}
+          className="print-hidden label shrink-0 border border-[var(--line-strong)] px-2.5 py-2 text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:cursor-wait disabled:opacity-60 sm:px-3"
+          title="Save the catalogue as a PDF"
+        >
+          {downloading ? "Preparing PDF..." : "Download PDF"}
+        </button>
 
         <div className="relative ml-auto w-full max-w-[320px]">
           <form
