@@ -38,10 +38,20 @@ function readWorkbook(path: string) {
 
   const masterNames = new Set(masterRows.map(r => r.Name?.trim().toUpperCase()).filter(Boolean));
 
-  let allRows = masterRows.map(r => ({
+  /** Some source sheets put a title row above the column headers, so the header
+      row itself can leak into the parsed data (e.g. Name/'Name' + Category/'Category'
+      or a stray 'S/N'). Those rows must never become products or categories. */
+  const isHeaderRow = (name: string, category: string) =>
+    name.trim().toUpperCase() === 'NAME' ||
+    category.trim().toUpperCase() === 'CATEGORY' ||
+    /^S\/N$/i.test(name.trim());
+
+  type RawRow = { name: string; category: string };
+
+  const allRows: RawRow[] = masterRows.map(r => ({
     name: r.Name?.trim() || '',
     category: r.Category?.trim() || '',
-  })).filter(r => r.name && r.category);
+  })).filter(r => r.name && r.category && !isHeaderRow(r.name, r.category));
 
   if (secondarySheet) {
     const secondaryRows = XLSX.utils.sheet_to_json<{ Name: string; Category: string }>(secondarySheet, {
@@ -52,14 +62,14 @@ function readWorkbook(path: string) {
     for (const row of secondaryRows) {
       const name = row.Name?.trim();
       const category = row.Category?.trim();
-      if (name && category && !masterNames.has(name.toUpperCase())) {
+      if (name && category && !isHeaderRow(name, category) && !masterNames.has(name.toUpperCase())) {
         allRows.push({ name, category });
       }
     }
   }
 
   const seen = new Set<string>();
-  const products: any[] = [];
+  const products: Array<{ name: string; category: string; categorySlug: string; slug: string }> = [];
   for (const row of allRows) {
     const cleanName = row.name.replace(/\s+/g, ' ');
     const key = cleanName.toUpperCase();
