@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/admin-api';
 import { markPdfOutdated } from '@/lib/pdf-status';
+import { logActivity } from '@/lib/audit';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET() {
@@ -30,8 +31,26 @@ export async function POST(request: NextRequest) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    await logActivity({
+      action: 'category.created',
+      entityType: 'category',
+      entityName: typeof body?.name === 'string' ? body.name : null,
+      description: 'Category creation failed.',
+      metadata: { error: error.message },
+      status: 'failed',
+    });
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
   await markPdfOutdated();
+  await logActivity({
+    action: 'category.created',
+    entityType: 'category',
+    entityId: data.id,
+    entityName: data.name,
+    description: `Created category “${data.name}”.`,
+    metadata: { name: data.name, slug: data.slug, status: data.status },
+  });
   return NextResponse.json(data);
 }

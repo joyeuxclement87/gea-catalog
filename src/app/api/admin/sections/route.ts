@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/admin-api';
 import { markPdfOutdated } from '@/lib/pdf-status';
+import { logActivity } from '@/lib/audit';
 import { NextRequest, NextResponse } from 'next/server';
 
 function slugify(value: string): string {
@@ -37,8 +38,26 @@ export async function POST(request: NextRequest) {
   };
 
   const { data, error } = await createServiceClient().from('catalogue_sections').insert(record).select().single();
-  if (error) return NextResponse.json({ error: 'Unable to create section.' }, { status: 400 });
+  if (error) {
+    await logActivity({
+      action: 'section.created',
+      entityType: 'section',
+      entityName: title,
+      description: 'Section creation failed.',
+      metadata: { error: error.message },
+      status: 'failed',
+    });
+    return NextResponse.json({ error: 'Unable to create section.' }, { status: 400 });
+  }
 
   await markPdfOutdated();
+  await logActivity({
+    action: 'section.created',
+    entityType: 'section',
+    entityId: data.id,
+    entityName: data.title,
+    description: `Created section “${data.title}”.`,
+    metadata: { title: data.title, slug: data.slug, status: data.status },
+  });
   return NextResponse.json(data, { status: 201 });
 }

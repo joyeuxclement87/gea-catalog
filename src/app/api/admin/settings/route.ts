@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/admin-api';
 import { markPdfOutdated } from '@/lib/pdf-status';
+import { diffRecord, logActivity } from '@/lib/audit';
 import { NextRequest, NextResponse } from 'next/server';
 
 const FIELDS = [
@@ -35,7 +36,8 @@ export async function PATCH(request: NextRequest) {
   }
 
   const supabase = createServiceClient();
-  const { data: existing } = await supabase.from('catalogue_settings').select('id').limit(1).maybeSingle();
+  const { data: existing } = await supabase.from('catalogue_settings').select('*').limit(1).maybeSingle();
+  const changes = diffRecord(existing as Record<string, unknown> | null | undefined, record);
   if (existing) {
     const { data, error } = await supabase
       .from('catalogue_settings')
@@ -43,8 +45,26 @@ export async function PATCH(request: NextRequest) {
       .eq('id', existing.id)
       .select()
       .single();
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      await logActivity({
+        action: 'settings.updated',
+        entityType: 'settings',
+        entityName: 'Catalogue settings',
+        description: 'Updating catalogue settings failed.',
+        metadata: { error: error.message },
+        status: 'failed',
+      });
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
     await markPdfOutdated();
+    await logActivity({
+      action: 'settings.updated',
+      entityType: 'settings',
+      entityId: existing.id,
+      entityName: 'Catalogue settings',
+      description: 'Updated catalogue settings.',
+      metadata: Object.keys(changes).length > 0 ? { changes } : null,
+    });
     return NextResponse.json(data);
   }
 
@@ -55,5 +75,13 @@ export async function PATCH(request: NextRequest) {
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   await markPdfOutdated();
+  await logActivity({
+    action: 'settings.updated',
+    entityType: 'settings',
+    entityId: data.id,
+    entityName: 'Catalogue settings',
+    description: 'Updated catalogue settings.',
+    metadata: { changes: record },
+  });
   return NextResponse.json(data);
 }

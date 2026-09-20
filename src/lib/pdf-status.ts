@@ -1,6 +1,7 @@
 import { createServiceClient } from './supabase';
 import { ensureBucketsExist } from './storage';
 import { renderCataloguePdf } from './pdf-render';
+import { logActivity } from './audit';
 
 export const PDF_BUCKET = 'catalogue-pdfs';
 export const PDF_FOLDER = 'catalogue';
@@ -257,6 +258,14 @@ export async function generateCataloguePdf(options: GenerateOptions = {}): Promi
   const claimed = await claimGeneration();
   if (!claimed) return { status: 'busy' };
 
+  await logActivity({
+    action: 'pdf.generation_started',
+    entityType: 'catalogue',
+    entityName: 'GEA Product Catalogue 2026',
+    description: 'Catalogue PDF generation started.',
+    metadata: { content_version: claimed.contentVersion },
+  });
+
   const supabase = createServiceClient();
   const versionAtStart = claimed.contentVersion;
 
@@ -288,10 +297,25 @@ export async function generateCataloguePdf(options: GenerateOptions = {}): Promi
 
     const { fileSize } = await uploadPdf(buffer);
     await setStatusCurrent(fileSize);
+    await logActivity({
+      action: 'pdf.generated',
+      entityType: 'catalogue',
+      entityName: 'GEA Product Catalogue 2026',
+      description: 'Catalogue PDF generated and published (replaces the previous file).',
+      metadata: { file_size: fileSize, content_version: versionAtStart },
+    });
     return { status: 'current', fileSize };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     await setStatusFailed(message);
+    await logActivity({
+      action: 'pdf.generation_failed',
+      entityType: 'catalogue',
+      entityName: 'GEA Product Catalogue 2026',
+      description: 'Catalogue PDF generation failed.',
+      metadata: { error: message },
+      status: 'failed',
+    });
     return { status: 'failed', error: message };
   }
 }

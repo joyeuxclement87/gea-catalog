@@ -3,6 +3,7 @@ import { generateProductImagePath, STORAGE_BUCKETS, uploadImage } from '@/lib/st
 import { getUser } from '@/lib/auth';
 import { markPdfOutdated } from '@/lib/pdf-status';
 import { MAX_IMAGE_BYTES, rejectOversizedUpload } from '@/lib/upload-guard';
+import { logActivity } from '@/lib/audit';
 import { NextRequest, NextResponse } from 'next/server';
 
 const MAX_IMAGES = 5;
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<P
     return NextResponse.json({ error: 'Maximum 5 images per product.' }, { status: 409 });
   }
 
-  const { data: product } = await supabase.from('products').select('slug').eq('id', id).single();
+  const { data: product } = await supabase.from('products').select('slug, name').eq('id', id).single();
   if (!product) return NextResponse.json({ error: 'Product not found.' }, { status: 404 });
 
   const storagePath = generateProductImagePath(`${product.slug}/${crypto.randomUUID()}`, file.name);
@@ -70,5 +71,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<P
 
   if (error) return NextResponse.json({ error: 'Image record could not be saved.' }, { status: 500 });
   await markPdfOutdated();
+  await logActivity({
+    action: 'media.uploaded',
+    entityType: 'media',
+    entityId: image.id,
+    entityName: product.name ?? null,
+    description: `Added a product image to “${product.name}”.`,
+    metadata: { product_id: id, image_url: image.image_url, is_primary: image.is_primary },
+  });
   return NextResponse.json(image, { status: 201 });
 }

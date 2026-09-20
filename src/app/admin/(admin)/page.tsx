@@ -1,8 +1,14 @@
 import Link from 'next/link';
 import { getDashboardStats, getRecentProductsAdmin } from '@/lib/admin-actions';
+import { getRecentActivities } from '@/lib/audit';
+import RecentActivity from '@/components/admin/RecentActivity';
 
 export default async function AdminDashboardPage() {
-  const [stats, recentProducts] = await Promise.all([getDashboardStats(), getRecentProductsAdmin()]);
+  const [stats, recentProducts, recentActivities] = await Promise.all([
+    getDashboardStats(),
+    getRecentProductsAdmin(),
+    getRecentActivities(6),
+  ]);
   return (
     <div>
       <div className="mb-8">
@@ -61,6 +67,8 @@ export default async function AdminDashboardPage() {
           {recentProducts.length === 0 ? <p className="px-5 py-8 text-sm text-[var(--muted)]">No products yet.</p> : null}
         </div>
       </section>
+
+      <RecentActivity activities={recentActivities} />
     </div>
   );
 }

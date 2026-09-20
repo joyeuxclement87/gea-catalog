@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/admin-api';
 import { deleteImage, uploadImage, STORAGE_BUCKETS } from '@/lib/storage';
 import { markPdfOutdated } from '@/lib/pdf-status';
 import { MAX_IMAGE_BYTES, rejectOversizedUpload } from '@/lib/upload-guard';
+import { logActivity } from '@/lib/audit';
 import { NextRequest, NextResponse } from 'next/server';
 
 const MAX_FILE_SIZE = MAX_IMAGE_BYTES;
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<P
   if (file.size > MAX_FILE_SIZE) return NextResponse.json({ error: 'Images must be 4 MB or smaller.' }, { status: 400 });
 
   const supabase = createServiceClient();
-  const { data: section } = await supabase.from('catalogue_sections').select('slug, image_path').eq('id', id).single();
+  const { data: section } = await supabase.from('catalogue_sections').select('slug, title, image_path').eq('id', id).single();
   if (!section) return NextResponse.json({ error: 'Section not found.' }, { status: 404 });
 
   const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
@@ -45,6 +46,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<P
     await deleteImage(BUCKET, section.image_path);
   }
   await markPdfOutdated();
+  await logActivity({
+    action: 'section.image_updated',
+    entityType: 'section',
+    entityId: id,
+    entityName: section.title ?? null,
+    description: `Changed the image of section “${section.title}”.`,
+    metadata: { image_url: uploaded.publicUrl },
+  });
   return NextResponse.json(data);
 }
 
@@ -54,7 +63,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   const { id } = await params;
 
   const supabase = createServiceClient();
-  const { data: section } = await supabase.from('catalogue_sections').select('image_path').eq('id', id).single();
+  const { data: section } = await supabase.from('catalogue_sections').select('title, image_path').eq('id', id).single();
   if (!section) return NextResponse.json({ error: 'Section not found.' }, { status: 404 });
 
   if (section.image_path) await deleteImage(BUCKET, section.image_path);
@@ -64,5 +73,13 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     .eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   await markPdfOutdated();
+  await logActivity({
+    action: 'section.image_removed',
+    entityType: 'section',
+    entityId: id,
+    entityName: section.title ?? null,
+    description: `Removed the image of section “${section.title}”.`,
+    metadata: null,
+  });
   return NextResponse.json({ success: true });
 }

@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/admin-api';
 import { markPdfOutdated } from '@/lib/pdf-status';
+import { logActivity } from '@/lib/audit';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -23,5 +24,12 @@ export async function POST(request: NextRequest) {
   }
 
   await markPdfOutdated();
+  await logActivity({
+    action: 'category.reordered',
+    entityType: 'category',
+    entityName: null,
+    description: `Reordered ${updates.length} categor${updates.length === 1 ? 'y' : 'ies'}.`,
+    metadata: { count: updates.length },
+  });
   return NextResponse.json({ success: true });
 }

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { IconAdjustments, IconCategory, IconDashboard, IconFileText, IconPhoto, IconShoppingBag } from '@tabler/icons-react';
+import { IconAdjustments, IconCategory, IconDashboard, IconFileText, IconHistory, IconPhoto, IconShoppingBag } from '@tabler/icons-react';
 
 const navigation = [
   { href: '/admin', label: 'Dashboard', icon: IconDashboard },
@@ -12,6 +12,7 @@ const navigation = [
   { href: '/admin/media', label: 'Media', icon: IconPhoto },
   { href: '/admin/pdf', label: 'Catalogue PDF', icon: IconFileText },
   { href: '/admin/settings', label: 'Catalogue settings', icon: IconAdjustments },
+  { href: '/admin/activity', label: 'Activity History', icon: IconHistory },
 ];
 
 export default function AdminNav() {

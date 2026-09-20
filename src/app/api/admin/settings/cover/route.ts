@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/admin-api';
 import { deleteImage, generateCoverImagePath, uploadImage, STORAGE_BUCKETS } from '@/lib/storage';
 import { markPdfOutdated } from '@/lib/pdf-status';
 import { MAX_IMAGE_BYTES, rejectOversizedUpload } from '@/lib/upload-guard';
+import { logActivity } from '@/lib/audit';
 import { NextRequest, NextResponse } from 'next/server';
 
 const MAX_FILE_SIZE = MAX_IMAGE_BYTES;
@@ -42,12 +43,27 @@ export async function POST(request: NextRequest) {
       await deleteImage(STORAGE_BUCKETS.cover, existing.cover_image_path);
     }
     await markPdfOutdated();
+    await logActivity({
+      action: 'settings.cover_updated',
+      entityType: 'settings',
+      entityName: 'Catalogue cover',
+      description: 'Updated the catalogue cover image.',
+      metadata: { image_url: uploaded.publicUrl, replaced: true },
+    });
     return NextResponse.json(data);
   }
 
   const { data, error } = await supabase.from('catalogue_settings').insert(record).select().single();
   if (error) return NextResponse.json({ error: 'Cover record could not be saved.' }, { status: 500 });
   await markPdfOutdated();
+  await logActivity({
+    action: 'settings.cover_updated',
+    entityType: 'settings',
+    entityId: data.id,
+    entityName: 'Catalogue cover',
+    description: 'Updated the catalogue cover image.',
+    metadata: { image_url: uploaded.publicUrl, replaced: false },
+  });
   return NextResponse.json(data);
 }
 
@@ -68,5 +84,12 @@ export async function DELETE() {
     .eq('id', existing.id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   await markPdfOutdated();
+  await logActivity({
+    action: 'settings.cover_removed',
+    entityType: 'settings',
+    entityName: 'Catalogue cover',
+    description: 'Removed the catalogue cover image.',
+    metadata: null,
+  });
   return NextResponse.json({ success: true });
 }

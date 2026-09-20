@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/admin-api';
 import { generateCategoryImagePath, uploadImage, STORAGE_BUCKETS } from '@/lib/storage';
 import { markPdfOutdated } from '@/lib/pdf-status';
 import { MAX_IMAGE_BYTES, rejectOversizedUpload } from '@/lib/upload-guard';
+import { logActivity } from '@/lib/audit';
 import { NextRequest, NextResponse } from 'next/server';
 
 const MAX_FILE_SIZE = MAX_IMAGE_BYTES;
@@ -24,8 +25,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<P
   if (file.size > MAX_FILE_SIZE) return NextResponse.json({ error: 'Images must be 4 MB or smaller.' }, { status: 400 });
 
   const supabase = createServiceClient();
-  const { data: category } = await supabase.from('categories').select('slug').eq('id', id).single();
+  const { data: category } = await supabase.from('categories').select('slug, name, image').eq('id', id).single();
   if (!category) return NextResponse.json({ error: 'Category not found.' }, { status: 404 });
+
+  const hadImage = Boolean(category.image);
 
   // Path is deterministic per category slug, so a fresh upload overwrites the previous file.
   const storagePath = generateCategoryImagePath(category.slug, file.name);
@@ -40,6 +43,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<P
     .single();
   if (error) return NextResponse.json({ error: 'Image record could not be saved.' }, { status: 500 });
   await markPdfOutdated();
+  await logActivity({
+    action: hadImage ? 'category.image_replaced' : 'category.image_added',
+    entityType: 'category',
+    entityId: id,
+    entityName: category.name ?? null,
+    description: hadImage
+      ? `Replaced the image of category “${category.name}”.`
+      : `Added an image to category “${category.name}”.`,
+    metadata: { image_url: uploaded.publicUrl },
+  });
   return NextResponse.json(data);
 }
 
@@ -49,11 +62,19 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   const { id } = await params;
 
   const supabase = createServiceClient();
-  const { data: category } = await supabase.from('categories').select('image').eq('id', id).single();
+  const { data: category } = await supabase.from('categories').select('name, image').eq('id', id).single();
   if (!category) return NextResponse.json({ error: 'Category not found.' }, { status: 404 });
 
   const { error } = await supabase.from('categories').update({ image: null }).eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   await markPdfOutdated();
+  await logActivity({
+    action: 'category.image_deleted',
+    entityType: 'category',
+    entityId: id,
+    entityName: category.name ?? null,
+    description: `Removed the image of category “${category.name}”.`,
+    metadata: null,
+  });
   return NextResponse.json({ success: true });
 }
