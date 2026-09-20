@@ -401,7 +401,7 @@ function CategoryForm({
                 value={category.image}
                 field="image"
                 label="Category image"
-                hint="Upload from this device. JPG, PNG or WebP up to 5 MB."
+                hint="Upload from this device. JPG, PNG or WebP up to 4 MB."
                 onChange={(url) => setFormData((prev) => ({ ...prev, image: url ?? '' }))}
               />
             )}
