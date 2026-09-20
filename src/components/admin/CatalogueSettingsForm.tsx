@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
 import ImageUploader from './ImageUploader';
+import { parseJsonResponse } from '@/lib/client-json';
 
 const inputClass =
   'w-full border border-[var(--line-strong)] bg-[var(--paper)] px-3 py-2 text-sm text-[var(--ink)] placeholder:text-[var(--muted-2)] focus:border-[var(--brand-blue)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-blue)]';
@@ -45,8 +46,8 @@ export default function CatalogueSettingsForm({
           closing_message: messageText,
         }),
       });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Failed to save settings.');
+      const result = await parseJsonResponse<{ error?: string }>(response);
+      if (!response.ok) throw new Error(result?.error || `Failed to save settings (HTTP ${response.status}).`);
       setMessage('Settings saved. The catalogue updates on its next render.');
       router.refresh();
     } catch (saveError) {

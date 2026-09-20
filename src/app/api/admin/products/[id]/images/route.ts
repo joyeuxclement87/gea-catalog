@@ -2,10 +2,11 @@ import { createServiceClient } from '@/lib/supabase';
 import { generateProductImagePath, STORAGE_BUCKETS, uploadImage } from '@/lib/storage';
 import { getUser } from '@/lib/auth';
 import { markPdfOutdated } from '@/lib/pdf-status';
+import { MAX_IMAGE_BYTES, rejectOversizedUpload } from '@/lib/upload-guard';
 import { NextRequest, NextResponse } from 'next/server';
 
 const MAX_IMAGES = 5;
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_FILE_SIZE = MAX_IMAGE_BYTES;
 const MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 type Params = { id: string };
@@ -27,11 +28,13 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<P
 export async function POST(request: NextRequest, { params }: { params: Promise<Params> }) {
   if (!(await getUser())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { id } = await params;
+  const tooLarge = rejectOversizedUpload(request);
+  if (tooLarge) return tooLarge;
   const formData = await request.formData();
   const file = formData.get('file');
   if (!(file instanceof File)) return NextResponse.json({ error: 'Choose an image file.' }, { status: 400 });
   if (!MIME_TYPES.has(file.type)) return NextResponse.json({ error: 'Use JPG, PNG, or WebP images.' }, { status: 400 });
-  if (file.size > MAX_FILE_SIZE) return NextResponse.json({ error: 'Images must be 5 MB or smaller.' }, { status: 400 });
+  if (file.size > MAX_FILE_SIZE) return NextResponse.json({ error: 'Images must be 4 MB or smaller.' }, { status: 400 });
 
   const supabase = createServiceClient();
   const { data: existingData, error: countError } = await supabase

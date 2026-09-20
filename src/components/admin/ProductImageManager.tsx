@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { parseJsonResponse } from '@/lib/client-json';
 
 export type ManagedProductImage = {
   id: string;
@@ -31,7 +32,7 @@ export default function ProductImageManager({ productId, initialImages = [] }: P
   async function refresh() {
     const response = await fetch(`/api/admin/products/${productId}/images`, { cache: 'no-store' });
     if (!response.ok) throw new Error('Unable to refresh images.');
-    setImages(await response.json());
+    setImages((await parseJsonResponse<ManagedProductImage[]>(response)) ?? []);
   }
 
   async function addImage(file: File) {
@@ -42,8 +43,8 @@ export default function ProductImageManager({ productId, initialImages = [] }: P
       const form = new FormData();
       form.append('file', file);
       const response = await fetch(`/api/admin/products/${productId}/images`, { method: 'POST', body: form });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Upload failed.');
+      const result = await parseJsonResponse<{ error?: string }>(response);
+      if (!response.ok) throw new Error(result?.error || `Upload failed (HTTP ${response.status}).`);
       await refresh();
       setMessage('Image added.');
     } catch (uploadError) {
@@ -61,8 +62,8 @@ export default function ProductImageManager({ productId, initialImages = [] }: P
       const form = new FormData();
       form.append('file', file);
       const response = await fetch(`/api/admin/products/${productId}/images/${imageId}`, { method: 'PUT', body: form });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Replace failed.');
+      const result = await parseJsonResponse<{ error?: string }>(response);
+      if (!response.ok) throw new Error(result?.error || `Replace failed (HTTP ${response.status}).`);
       await refresh();
       setMessage('Image replaced.');
     } catch (replaceError) {
@@ -82,8 +83,8 @@ export default function ProductImageManager({ productId, initialImages = [] }: P
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, display_order: displayOrder }),
       });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Image update failed.');
+      const result = await parseJsonResponse<{ error?: string }>(response);
+      if (!response.ok) throw new Error(result?.error || `Image update failed (HTTP ${response.status}).`);
       await refresh();
       setMessage(action === 'primary' ? 'Primary image updated.' : 'Image order updated.');
     } catch (actionError) {
@@ -100,8 +101,8 @@ export default function ProductImageManager({ productId, initialImages = [] }: P
     setMessage('');
     try {
       const response = await fetch(`/api/admin/products/${productId}/images/${image.id}`, { method: 'DELETE' });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Delete failed.');
+      const result = await parseJsonResponse<{ error?: string }>(response);
+      if (!response.ok) throw new Error(result?.error || `Delete failed (HTTP ${response.status}).`);
       await refresh();
       setMessage('Image deleted.');
     } catch (deleteError) {

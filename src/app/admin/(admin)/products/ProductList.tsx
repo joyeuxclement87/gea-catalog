@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ProductImageManager from '@/components/admin/ProductImageManager';
+import { parseJsonResponse } from '@/lib/client-json';
 
 interface ProductListProps {
   products: any[];
@@ -354,14 +355,14 @@ function ProductForm({
       body: JSON.stringify(payload),
     });
 
-    const result = await res.json();
+    const result = await parseJsonResponse<{ id?: string; error?: string }>(res);
     if (!res.ok) {
-      setError(result.error || 'Failed to save');
+      setError(result?.error || `Failed to save (HTTP ${res.status}).`);
       setLoading(false);
       return;
     }
 
-    if (!product && pendingImages.length > 0) {
+    if (!product && pendingImages.length > 0 && result?.id) {
       for (const file of pendingImages) {
         const imageForm = new FormData();
         imageForm.append('file', file);
@@ -370,8 +371,8 @@ function ProductForm({
           body: imageForm,
         });
         if (!imageResponse.ok) {
-          const imageResult = await imageResponse.json();
-          setError(imageResult.error || 'Product saved, but an image upload failed.');
+          const imageResult = await parseJsonResponse<{ error?: string }>(imageResponse);
+          setError(imageResult?.error || `Product saved, but an image upload failed (HTTP ${imageResponse.status}).`);
           setLoading(false);
           return;
         }

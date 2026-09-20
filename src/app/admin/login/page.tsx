@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { parseJsonResponse } from '@/lib/client-json';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -23,10 +24,10 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
+      const data = await parseJsonResponse<{ error?: string }>(res);
 
       if (!res.ok) {
-        setError(data.error || 'Unable to sign in.');
+        setError(data?.error || `Unable to sign in (HTTP ${res.status}).`);
         setLoading(false);
         return;
       }

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ImageUploader from '@/components/admin/ImageUploader';
+import { parseJsonResponse } from '@/lib/client-json';
 
 interface CategoryListProps {
   categories: any[];
@@ -311,18 +312,20 @@ function CategoryForm({
     });
 
     if (!res.ok) {
-      const data = await res.json();
-      setError(data.error || 'Failed to save');
+      const data = await parseJsonResponse<{ error?: string }>(res);
+      setError(data?.error || `Failed to save (HTTP ${res.status}).`);
       setLoading(false);
       return;
     }
 
-    const saved = await res.json();
+    const saved = await parseJsonResponse<Record<string, unknown>>(res);
     if (category) {
       onSuccess();
       onClose();
-    } else {
+    } else if (saved) {
       onCreated?.(saved);
+    } else {
+      onSuccess();
     }
   }
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { parseJsonResponse } from '@/lib/client-json';
 
 type PdfStatus = {
   status: 'current' | 'generating' | 'failed' | 'outdated';
@@ -48,8 +49,8 @@ export default function PdfManager({ initial }: { initial: PdfStatus }) {
     try {
       const response = await fetch('/api/catalogue/pdf/status');
       if (response.ok) {
-        const data = (await response.json()) as PdfStatus;
-        setStatus(data);
+        const data = await parseJsonResponse<PdfStatus>(response);
+        if (data) setStatus(data);
       }
     } catch {
       // ignore transient failures; the next poll will retry
@@ -75,20 +76,20 @@ export default function PdfManager({ initial }: { initial: PdfStatus }) {
     setNotice('');
     try {
       const response = await fetch('/api/admin/pdf/generate', { method: 'POST' });
-      const result = await response.json();
+      const result = await parseJsonResponse<{ status?: string; error?: string }>(response);
       if (response.status === 409) {
         setNotice('A PDF generation is already running — it will complete shortly.');
         await refresh();
         return;
       }
       if (!response.ok) {
-        throw new Error(result.error || 'PDF generation failed.');
+        throw new Error(result?.error || `PDF generation failed (HTTP ${response.status}).`);
       }
-      if (result.status === 'busy') {
+      if (result?.status === 'busy') {
         setNotice('A PDF generation is already running — it will complete shortly.');
-      } else if (result.status === 'failed') {
+      } else if (result?.status === 'failed') {
         setNotice(`Generation failed: ${result.error ?? 'unknown error'}`);
-      } else if (result.status === 'stale') {
+      } else if (result?.status === 'stale') {
         setNotice('Catalogue changed while the PDF was rendering — a fresh PDF is being prepared.');
       } else {
         setNotice('Catalogue PDF generated and published.');

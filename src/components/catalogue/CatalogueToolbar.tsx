@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { parseJsonResponse } from "@/lib/client-json";
 
 type SearchEntry = { name: string; href: string; category: string; image?: string | null };
 type NavCategory = { id?: string; slug: string; name: string };
@@ -28,7 +29,7 @@ export function CatalogueToolbar({
   useEffect(() => {
     let cancelled = false;
     fetch("/api/catalogue/pdf/status")
-      .then((r) => (r.ok ? r.json() : null))
+      .then((r) => (r.ok ? parseJsonResponse<{ available: boolean }>(r) : null))
       .then((data) => {
         if (!cancelled && data) setPdfPreparing(!data.available);
       })

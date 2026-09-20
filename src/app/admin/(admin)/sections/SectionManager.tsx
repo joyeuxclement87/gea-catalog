@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ImageUploader from '@/components/admin/ImageUploader';
+import { parseJsonResponse } from '@/lib/client-json';
 
 const inputClass =
   'w-full border border-[var(--line-strong)] bg-[var(--paper)] px-3 py-2 text-sm text-[var(--ink)] placeholder:text-[var(--muted-2)] focus:border-[var(--brand-blue)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-blue)]';
@@ -222,14 +223,16 @@ function SectionForm({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    const result = await response.json();
+    const result = await parseJsonResponse<Section & { error?: string }>(response);
     if (!response.ok) {
-      setError(result.error || 'Failed to save section.');
+      setError(result?.error || `Failed to save section (HTTP ${response.status}).`);
       setSaving(false);
       return;
     }
-    if (section) onSaved?.(result as Section);
-    else onCreated?.(result as Section);
+    if (result) {
+      if (section) onSaved?.(result);
+      else onCreated?.(result);
+    }
   }
 
   return (

@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { parseJsonResponse } from '@/lib/client-json';
 
 type UrlField = 'image' | 'image_url' | 'cover_image_url';
 
@@ -26,7 +27,7 @@ export default function ImageUploader({
   value,
   onChange,
   label = 'Image',
-  hint = 'JPG, PNG or WebP up to 5 MB.',
+  hint = 'JPG, PNG or WebP up to 4 MB.',
   field = 'image',
   compact = false,
 }: Props) {
@@ -43,9 +44,9 @@ export default function ImageUploader({
       const form = new FormData();
       form.append('file', file);
       const response = await fetch(endpoint, { method: 'POST', body: form });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Upload failed.');
-      const url = result?.[field] ?? null;
+      const result = await parseJsonResponse<Record<string, unknown> & { error?: string }>(response);
+      if (!response.ok) throw new Error(result?.error || `Upload failed (HTTP ${response.status}).`);
+      const url = typeof result?.[field] === 'string' ? (result[field] as string) : null;
       if (url) {
         onChange?.(url);
         setMessage('Image uploaded.');
@@ -66,8 +67,8 @@ export default function ImageUploader({
     setMessage('');
     try {
       const response = await fetch(endpoint, { method: 'DELETE' });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Remove failed.');
+      const result = await parseJsonResponse<{ error?: string }>(response);
+      if (!response.ok) throw new Error(result?.error || `Remove failed (HTTP ${response.status}).`);
       onChange?.(null);
       setMessage('Image removed.');
     } catch (removeError) {
