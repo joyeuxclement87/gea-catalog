@@ -6,6 +6,7 @@ export const STORAGE_BUCKETS = {
   products: 'product-images',
   categories: 'category-images',
   cover: 'catalogue-cover',
+  sections: 'catalogue-sections',
 } as const;
 
 export type StorageBucket = typeof STORAGE_BUCKETS[keyof typeof STORAGE_BUCKETS];

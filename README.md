@@ -34,10 +34,12 @@ A document-first product catalogue built with Next.js 16, Supabase, and Tailwind
 3. Run the SQL schema in the Supabase SQL Editor (see `supabase/schema.sql`)
    - For an existing project, run `supabase/migrations/20260920_product_images.sql` to add the five-image product gallery and migrate existing product images.
    - Run `supabase/migrations/20260920_catalogue_sections.sql` to enable custom editorial sections.
+   - Run `supabase/migrations/20260920_catalogue_settings.sql` to enable cover, contact, and final-page configuration.
 4. Create storage buckets:
    - `product-images` (public, 5MB limit, image types)
    - `category-images` (public, 5MB limit, image types)
    - `catalogue-cover` (public, 5MB limit, image types)
+   - `catalogue-sections` (public, 5MB limit, image types)
 
 ### 2. Configure Environment
 

@@ -37,6 +37,18 @@ export interface CatalogueSection {
   updated_at: string;
 }
 
+export interface CatalogueSettings {
+  id: string;
+  website_url: string;
+  contact_phone: string;
+  contact_email: string;
+  contact_address: string;
+  closing_message: string;
+  cover_image_url: string;
+  cover_image_path: string | null;
+  updated_at: string;
+}
+
 export interface Product {
   id: string;
   name: string;

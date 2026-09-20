@@ -59,7 +59,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
   const next = idx < catProducts.length - 1 ? catProducts[idx + 1] : null;
 
   const navCell =
-    "group flex flex-1 flex-col gap-1.5 px-5 py-4 transition-colors hover:bg-[var(--paper-2)]";
+    "group flex flex-1 flex-col gap-1.5 px-5 py-4 transition-colors hover:bg-[var(--brand-blue-light)]/40";
 
   const categoryName = product.category?.name || product.categorySlug;
 
@@ -67,22 +67,25 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
     <CatalogueShell>
       {/* breadcrumb */}
       <div className="flex items-center gap-3 px-6 pt-6 sm:px-10">
-        <Link href="/catalogue" className="label text-[9.5px] text-[var(--muted)] transition-colors hover:text-[var(--ink)]">
+        <Link href="/catalogue" className="catalogue-link label text-[9.5px]">
           GEA Catalogue
         </Link>
         <span className="text-[var(--muted-2)]" aria-hidden>/</span>
-        <Link href={`/catalogue/${product.categorySlug}`} className="label text-[9.5px] text-[var(--muted)] transition-colors hover:text-[var(--ink)]">
+        <Link href={`/catalogue/${product.categorySlug}`} className="catalogue-link label text-[9.5px]">
           {categoryName}
         </Link>
-        <span className="ml-auto label tabular-nums text-[9.5px] text-[var(--muted)]">{folioNum} / {folio(total)}</span>
+        <span className="ml-auto label flex items-baseline gap-1.5 tabular-nums text-[9.5px] text-[var(--muted)]">
+          <span className="text-[8px] text-[var(--muted-2)]">Page</span>
+          {folioNum} / {folio(total)}
+        </span>
       </div>
 
       <article>
         {/* header */}
         <header className="px-6 pt-8 sm:px-10 sm:pt-12">
           <div className="flex items-center gap-4">
-            <span className="label tabular-nums text-[var(--accent)]">{folioNum}</span>
-            <span className="h-px w-8 bg-[var(--line-strong)]" aria-hidden />
+            <span className="label tabular-nums font-semibold text-[var(--brand-blue)]">{folioNum}</span>
+            <span className="h-px w-8 bg-[var(--brand-blue)]" aria-hidden />
             <span className="label text-[var(--muted)]">
               {categoryName} &#183; {catProducts.length} product{catProducts.length === 1 ? "" : "s"}
             </span>
@@ -136,10 +139,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
         </div>
 
         <div className="mx-4 mt-8 flex flex-wrap items-center justify-between gap-3 px-1 pb-10 sm:mx-8 sm:pb-12">
-          <Link href="/catalogue#contents" className="label text-[9.5px] text-[var(--muted)] transition-colors hover:text-[var(--ink)]">
+          <Link href="/catalogue#contents" className="catalogue-link label text-[9.5px]">
             &#8592; Back to contents
           </Link>
-          <p className="label tabular-nums text-[9.5px] text-[var(--muted)]">
+          <p className="label flex items-baseline gap-1.5 tabular-nums text-[9.5px] text-[var(--muted)]">
+            <span className="text-[8px] text-[var(--muted-2)]">Page</span>
             {folioNum} &#183; {idx + 1} / {catProducts.length}
           </p>
         </div>

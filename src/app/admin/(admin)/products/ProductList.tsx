@@ -114,7 +114,7 @@ export default function ProductList({
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-[var(--paper)] transition-colors hover:bg-[var(--accent)]"
+          className="bg-[var(--brand-blue)] px-4 py-2 text-sm font-semibold text-[var(--paper)] transition-colors hover:bg-[var(--brand-blue-dark)]"
         >
           Add Product
         </button>
@@ -297,7 +297,7 @@ function StatusBadge({ status }: { status: string }) {
     <span
       className={`inline-flex px-2 py-1 text-xs font-medium ${
         status === 'published'
-          ? 'bg-[#e7e8d5] text-[#3d5a3d]'
+          ? 'bg-[var(--brand-blue-light)] text-[var(--brand-blue-dark)]'
           : 'bg-[var(--paper-2)] text-[var(--muted)] border border-[var(--line-strong)]'
       }`}
     >
@@ -542,7 +542,7 @@ function ProductForm({
             <button type="button" onClick={onClose} className="border border-[var(--line-strong)] px-4 py-2 text-sm text-[var(--ink-2)] transition-colors hover:bg-[var(--paper-2)]">
               Cancel
             </button>
-            <button type="submit" disabled={loading} className="bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-[var(--paper)] transition-colors hover:bg-[var(--accent)] disabled:opacity-50">
+            <button type="submit" disabled={loading} className="bg-[var(--brand-blue)] px-4 py-2 text-sm font-semibold text-[var(--paper)] transition-colors hover:bg-[var(--brand-blue-dark)] disabled:opacity-50">
               {loading ? 'Saving…' : product ? 'Update' : 'Create'}
             </button>
           </div>

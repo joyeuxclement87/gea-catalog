@@ -11,9 +11,9 @@ type ProductImageProps = {
   priority?: boolean;
 };
 
-export function ProductImage({ slug, name, imageUrl, fill, className, sizes, priority }: ProductImageProps) {
+export function ProductImage({ name, imageUrl, fill, className, sizes, priority }: ProductImageProps) {
   const src = imageUrl;
-  if (!src) return <ProductPlaceholder name={name} />;
+  if (!src) return <ProductPlaceholder />;
   return (
     <Image
       src={src}

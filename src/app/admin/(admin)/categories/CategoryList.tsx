@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import ImageUploader from '@/components/admin/ImageUploader';
 
 interface CategoryListProps {
   categories: any[];
 }
 
 const inputClass =
-  'w-full border border-[var(--line-strong)] bg-[var(--paper)] px-3 py-2 text-sm text-[var(--ink)] placeholder:text-[var(--muted-2)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]';
+  'w-full border border-[var(--line-strong)] bg-[var(--paper)] px-3 py-2 text-sm text-[var(--ink)] placeholder:text-[var(--muted-2)] focus:border-[var(--brand-blue)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-blue)]';
 
 export default function CategoryList({ categories: initialCategories }: CategoryListProps) {
   const router = useRouter();
@@ -112,7 +113,7 @@ export default function CategoryList({ categories: initialCategories }: Category
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-[var(--paper)] transition-colors hover:bg-[var(--accent)]"
+          className="bg-[var(--brand-blue)] px-4 py-2 text-sm font-semibold text-[var(--paper)] transition-colors hover:bg-[var(--brand-blue-dark)]"
         >
           Add Category
         </button>
@@ -122,6 +123,10 @@ export default function CategoryList({ categories: initialCategories }: Category
         <CategoryForm
           onClose={() => setShowCreate(false)}
           onSuccess={() => router.refresh()}
+          onCreated={(category) => {
+            setShowCreate(false);
+            setEditingCategory(category);
+          }}
         />
       )}
 
@@ -246,7 +251,7 @@ function StatusBadge({ status }: { status: string }) {
     <span
       className={`inline-flex px-2 py-1 text-xs font-medium ${
         status === 'published'
-          ? 'bg-[#e7e8d5] text-[#3d5a3d]'
+          ? 'bg-[var(--brand-blue-light)] text-[var(--brand-blue-dark)]'
           : 'bg-[var(--paper-2)] text-[var(--muted)] border border-[var(--line-strong)]'
       }`}
     >
@@ -258,10 +263,12 @@ function StatusBadge({ status }: { status: string }) {
 function CategoryForm({
   category,
   onClose,
+  onCreated,
   onSuccess,
 }: {
   category?: any;
   onClose: () => void;
+  onCreated?: (category: any) => void;
   onSuccess: () => void;
 }) {
   const [formData, setFormData] = useState({
@@ -310,8 +317,13 @@ function CategoryForm({
       return;
     }
 
-    onSuccess();
-    onClose();
+    const saved = await res.json();
+    if (category) {
+      onSuccess();
+      onClose();
+    } else {
+      onCreated?.(saved);
+    }
   }
 
   return (
@@ -380,16 +392,21 @@ function CategoryForm({
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-[var(--ink-2)]">Image URL</label>
-            <input
-              name="image"
-              type="text"
-              value={formData.image}
-              onChange={handleChange}
-              className={inputClass}
-            />
-            {formData.image && (
-              <img src={formData.image} alt="Preview" className="mt-2 max-h-32 border border-[var(--line)]" />
+            {category ? (
+              <ImageUploader
+                endpoint={`/api/admin/categories/${category.id}/image`}
+                value={category.image}
+                field="image"
+                label="Category image"
+                hint="Shown as the section cover in the catalogue. JPG, PNG or WebP up to 5 MB."
+              />
+            ) : (
+              <div>
+                <label className="mb-1 block text-sm font-medium text-[var(--ink-2)]">Category image</label>
+                <p className="border border-dashed border-[var(--line-strong)] bg-[var(--paper-2)] p-3 text-xs text-[var(--muted)]">
+                  Create the category first, then upload its image from the edit screen.
+                </p>
+              </div>
             )}
           </div>
 
@@ -410,7 +427,7 @@ function CategoryForm({
             <button type="button" onClick={onClose} className="border border-[var(--line-strong)] px-4 py-2 text-sm text-[var(--ink-2)] transition-colors hover:bg-[var(--paper-2)]">
               Cancel
             </button>
-            <button type="submit" disabled={loading} className="bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-[var(--paper)] transition-colors hover:bg-[var(--accent)] disabled:opacity-50">
+            <button type="submit" disabled={loading} className="bg-[var(--brand-blue)] px-4 py-2 text-sm font-semibold text-[var(--paper)] transition-colors hover:bg-[var(--brand-blue-dark)] disabled:opacity-50">
               {loading ? 'Saving…' : category ? 'Update' : 'Create'}
             </button>
           </div>

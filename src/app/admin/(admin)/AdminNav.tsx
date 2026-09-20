@@ -43,7 +43,7 @@ export default function AdminNav() {
         {navigation.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
-            <Link key={item.href} href={item.href} className={`shrink-0 px-3 py-2 text-xs ${active ? 'bg-[var(--paper-2)] font-medium text-[var(--ink)]' : 'text-[var(--muted)]'}`}>
+            <Link key={item.href} href={item.href} className={`shrink-0 px-3 py-2 text-xs ${active ? 'bg-[var(--brand-blue-light)] font-medium text-[var(--brand-blue-dark)]' : 'text-[var(--muted)]'}`}>
               {item.label}
             </Link>
           );

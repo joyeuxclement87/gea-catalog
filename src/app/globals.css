@@ -126,19 +126,43 @@ body {
 .catalogue-primary {
   background: var(--brand-blue);
   color: white;
+  border-radius: 3px;
 }
 
 .catalogue-primary:hover {
   background: var(--brand-blue-dark);
 }
 
+.catalogue-primary:focus-visible {
+  outline: 2px solid var(--brand-blue);
+  outline-offset: 2px;
+}
+
 .catalogue-secondary {
   border: 1px solid var(--brand-blue);
   color: var(--brand-blue);
+  background: transparent;
+  border-radius: 3px;
 }
 
 .catalogue-secondary:hover {
   background: var(--brand-blue-light);
+  color: var(--brand-blue-dark);
+  border-color: var(--brand-blue-dark);
+}
+
+/* Editorial text link — blue, quiet underline, no pill */
+.catalogue-link {
+  color: var(--brand-blue);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--brand-blue) 35%, transparent);
+  text-underline-offset: 3px;
+  transition: color 150ms ease, text-decoration-color 150ms ease;
+}
+
+.catalogue-link:hover {
+  color: var(--brand-blue-dark);
+  text-decoration-color: var(--brand-blue-dark);
 }
 
 @page {

@@ -1,13 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
 import { folio } from "@/lib/catalog";
-import { IconArrowUp, IconBook2, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import { IconBook2, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 
 type Props = { sectionIds: string[] };
 
 export function PageNav({ sectionIds }: Props) {
   const [current, setCurrent] = useState(0);
-  const [showTop, setShowTop] = useState(false);
 
   useEffect(() => {
     const els = sectionIds.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
@@ -25,13 +24,7 @@ export function PageNav({ sectionIds }: Props) {
       { rootMargin: "-42% 0px -48% 0px", threshold: [0, 0.1, 0.25, 0.5, 1] },
     );
     els.forEach((el) => obs.observe(el));
-    const onScroll = () => setShowTop(window.scrollY > 600);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      obs.disconnect();
-      window.removeEventListener("scroll", onScroll);
-    };
+    return () => obs.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sectionIds]);
 
@@ -44,10 +37,8 @@ export function PageNav({ sectionIds }: Props) {
   const go = (id: string) =>
     document.getElementById(id)?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
 
-  const goTop = () => window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
-
   const btn =
-    "flex items-center gap-2 rounded-full px-4 py-2.5 text-[0.6875rem]! uppercase tracking-[0.14em] font-medium text-[var(--ink)] transition-colors hover:bg-black/[0.05] disabled:opacity-25 disabled:hover:bg-transparent";
+    "flex items-center gap-2 rounded-full px-4 py-2.5 text-[0.6875rem]! uppercase tracking-[0.14em] font-medium text-[var(--ink)] transition-colors hover:bg-[var(--brand-blue-light)] hover:text-[var(--brand-blue-dark)] disabled:opacity-25 disabled:hover:bg-transparent disabled:hover:text-[var(--ink)]";
 
   return (
     <div className="print-hidden pointer-events-none fixed inset-x-0 bottom-10 z-50 flex justify-center px-3 sm:bottom-14">
@@ -59,23 +50,20 @@ export function PageNav({ sectionIds }: Props) {
           <IconChevronLeft size={18} stroke={1.8} aria-hidden />
           <span className="hidden sm:inline">Previous</span>
         </button>
-        <button type="button" onClick={() => go("contents")} className={`${btn} text-[var(--muted)] hover:text-[var(--ink)]`} aria-label="Open contents">
+        <button type="button" onClick={() => go("contents")} className={`${btn} text-[var(--muted)] hover:text-[var(--brand-blue)]`} aria-label="Open contents">
           <IconBook2 size={18} stroke={1.8} aria-hidden />
           <span className="hidden sm:inline">Contents</span>
         </button>
-        <span className="px-3 text-[0.6875rem]! uppercase tracking-[0.16em] tabular-nums font-medium text-[var(--muted)]" aria-live="polite">
-          <span className="font-semibold text-[var(--brand-blue)]">{folio(current + 1)}</span>
-          <span className="text-[var(--muted-2)]"> / {folio(total)}</span>
+        <span className="flex flex-col items-center px-3 leading-tight" aria-live="polite">
+          <span className="label text-[7px] text-[var(--muted-2)]">Page</span>
+          <span className="label tabular-nums tracking-[0.16em] text-[0.6875rem]! font-semibold text-[var(--brand-blue)]">
+            {folio(current + 1)} / {folio(total)}
+          </span>
         </span>
         <button type="button" onClick={() => canNext && go(sectionIds[current + 1])} disabled={!canNext} className={btn} aria-label="Next section">
           <span className="hidden sm:inline">Next</span>
           <IconChevronRight size={18} stroke={1.8} aria-hidden />
         </button>
-        {showTop ? (
-          <button type="button" onClick={goTop} className={`${btn} border-l border-[var(--line)] text-[var(--accent)]`} aria-label="Back to top" title="Back to top">
-            <IconArrowUp size={18} stroke={1.8} aria-hidden />
-          </button>
-        ) : null}
       </nav>
     </div>
   );

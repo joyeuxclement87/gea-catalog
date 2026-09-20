@@ -60,6 +60,22 @@ CREATE TABLE catalogue_sections (
 CREATE INDEX idx_catalogue_sections_order ON catalogue_sections(display_order);
 CREATE INDEX idx_catalogue_sections_status ON catalogue_sections(status);
 
+-- Catalogue settings — single publication record for cover, contact, website URL and closing note.
+CREATE TABLE catalogue_settings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    website_url TEXT,
+    contact_phone TEXT,
+    contact_email TEXT,
+    contact_address TEXT,
+    closing_message TEXT,
+    cover_image_url TEXT,
+    cover_image_path TEXT,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Single-row guard: only one settings row may exist.
+CREATE UNIQUE INDEX idx_catalogue_settings_singleton ON catalogue_settings ((true));
+
 CREATE INDEX idx_product_images_product_order ON product_images(product_id, display_order);
 CREATE UNIQUE INDEX idx_product_images_one_primary ON product_images(product_id) WHERE is_primary = true;
 
@@ -161,6 +177,11 @@ CREATE POLICY "Public can read product images" ON product_images
 
     CREATE POLICY "Public can read published catalogue sections" ON catalogue_sections
         FOR SELECT USING (status = 'published');
+
+ALTER TABLE catalogue_settings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public can read catalogue settings" ON catalogue_settings
+    FOR SELECT USING (true);
 
 -- Admin policies (will be restricted via service role or custom claims)
 -- Service role bypasses RLS automatically

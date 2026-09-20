@@ -1,16 +1,24 @@
 "use client";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
 type SearchEntry = { name: string; href: string; category: string; image?: string | null };
+type NavCategory = { id?: string; slug: string; name: string };
 
-export function CatalogueToolbar({ products }: { products: SearchEntry[] }) {
+export function CatalogueToolbar({
+  products,
+  categories,
+}: {
+  products: SearchEntry[];
+  categories: NavCategory[];
+}) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [active, setActive] = useState("all");
   const timer = useRef<number | null>(null);
 
   const results = useMemo(() => {
@@ -22,6 +30,29 @@ export function CatalogueToolbar({ products }: { products: SearchEntry[] }) {
   }, [products, query]);
 
   const showPanel = focused && results !== null;
+
+  // Track which catalogue section is in view to highlight the active nav chip.
+  useEffect(() => {
+    const ids = ["cover", "contents", ...categories.map((c) => `cat-${c.slug}`)];
+    const els = ids.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    if (!els.length) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible) setActive(visible.target.id);
+      },
+      { rootMargin: "-38% 0px -52% 0px", threshold: [0, 0.1, 0.25, 0.5, 1] },
+    );
+    els.forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+  }, [categories]);
+
+  const reduced =
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const go = (id: string) =>
+    document.getElementById(id)?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
 
   async function downloadPdf() {
     setDownloading(true);
@@ -42,8 +73,15 @@ export function CatalogueToolbar({ products }: { products: SearchEntry[] }) {
     }
   }
 
+  const chip = (activeChip: boolean) =>
+    `label whitespace-nowrap border-b-2 px-1 pb-2 pt-1 transition-colors ${
+      activeChip
+        ? "border-[var(--brand-blue)] font-semibold text-[var(--brand-blue)]"
+        : "border-transparent text-[var(--muted)] hover:border-[var(--line-strong)] hover:text-[var(--ink)]"
+    }`;
+
   return (
-    <div className="print-hidden sticky top-0 z-40 border-b border-[var(--line)] bg-white/90 backdrop-blur-md">
+    <div className="print-hidden sticky top-0 z-40 border-b border-[var(--line)] bg-white/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-[1360px] items-center gap-4 px-4 py-3 sm:gap-6 sm:px-8">
         <Link href="#cover" aria-label="Back to cover" className="shrink-0 leading-none">
           <Image
@@ -58,7 +96,7 @@ export function CatalogueToolbar({ products }: { products: SearchEntry[] }) {
 
         <Link
           href="#contents"
-          className="label hidden shrink-0 text-[var(--muted)] underline decoration-transparent underline-offset-8 transition-colors hover:text-[var(--ink)] hover:decoration-[var(--accent)] sm:block"
+          className="label hidden shrink-0 text-[var(--brand-blue)] underline decoration-[color-mix(in_srgb,var(--brand-blue)_35%,transparent)] underline-offset-8 transition-colors hover:text-[var(--brand-blue-dark)] hover:decoration-[var(--brand-blue)] sm:block"
         >
           Contents
         </Link>
@@ -81,7 +119,7 @@ export function CatalogueToolbar({ products }: { products: SearchEntry[] }) {
               e.preventDefault();
               if (results && results[0]) router.push(results[0].href);
             }}
-            className="flex items-center gap-2 border border-[var(--line)] bg-[var(--paper-2)] px-3 py-2 transition-colors focus-within:border-[var(--brand-blue)] focus-within:bg-white"
+            className="flex items-center gap-2 rounded-[3px] border border-[var(--line)] bg-[var(--paper-2)] px-3 py-2 transition-colors focus-within:border-[var(--brand-blue)] focus-within:bg-white focus-within:ring-1 focus-within:ring-[var(--brand-blue)]"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-[var(--muted)]" aria-hidden>
               <circle cx="11" cy="11" r="7" />
@@ -97,7 +135,7 @@ export function CatalogueToolbar({ products }: { products: SearchEntry[] }) {
               }}
               type="search"
               enterKeyHint="search"
-              placeholder="Search products"
+              placeholder="Search products..."
               aria-label="Search the catalogue"
               className="w-full bg-transparent text-[13px] text-[var(--ink)] placeholder:text-[var(--muted-2)] focus:outline-none [&::-webkit-search-cancel-button]:hidden"
             />
@@ -106,7 +144,7 @@ export function CatalogueToolbar({ products }: { products: SearchEntry[] }) {
                 type="button"
                 onClick={() => setQuery("")}
                 aria-label="Clear search"
-                className="shrink-0 text-[11px] text-[var(--muted)] transition-colors hover:text-[var(--ink)]"
+                className="shrink-0 text-[11px] text-[var(--muted)] transition-colors hover:text-[var(--brand-blue)]"
               >
                 ✕
               </button>
@@ -121,12 +159,12 @@ export function CatalogueToolbar({ products }: { products: SearchEntry[] }) {
                 <ul>
                   {results!.map((p) => (
                     <li key={p.href} className="border-b border-[var(--line)] last:border-0">
-                      <Link href={p.href} className="group flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-[var(--paper-2)]">
+                      <Link href={p.href} className="group flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-[var(--brand-blue-light)]/50">
                         <span className="relative h-9 w-9 shrink-0 overflow-hidden border border-[var(--line)] bg-[var(--paper-2)]">
                           {p.image ? <Image src={p.image} alt="" width={36} height={36} className="h-full w-full object-contain p-0.5" /> : null}
                         </span>
                         <span className="min-w-0">
-                          <span className="block truncate font-serif text-[14px] leading-snug text-[var(--ink)]">{p.name}</span>
+                          <span className="block truncate font-serif text-[14px] leading-snug text-[var(--ink)] transition-colors group-hover:text-[var(--brand-blue-dark)]">{p.name}</span>
                           <span className="label mt-0.5 block truncate text-[9px] text-[var(--brand-blue)]">{p.category}</span>
                         </span>
                       </Link>
@@ -137,6 +175,32 @@ export function CatalogueToolbar({ products }: { products: SearchEntry[] }) {
             </div>
           )}
         </div>
+      </div>
+
+      {/* category quick access */}
+      <div className="border-t border-[var(--line)]">
+        <nav
+          aria-label="Catalogue categories"
+          className="mx-auto flex max-w-[1360px] items-center gap-5 overflow-x-auto px-4 py-2.5 sm:gap-6 sm:px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          <button
+            type="button"
+            onClick={() => go("contents")}
+            className={chip(active === "contents" || active === "cover")}
+            aria-current={active === "contents" || active === "cover" ? "true" : undefined}
+          >
+            All
+          </button>
+          {categories.map((c) => {
+            const id = `cat-${c.slug}`;
+            const isActive = active === id;
+            return (
+              <button type="button" key={c.id ?? c.slug} onClick={() => go(id)} className={chip(isActive)} aria-current={isActive ? "true" : undefined}>
+                {c.name}
+              </button>
+            );
+          })}
+        </nav>
       </div>
     </div>
   );
