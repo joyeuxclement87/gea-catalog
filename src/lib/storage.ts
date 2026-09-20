@@ -21,7 +21,7 @@ export async function ensureBucketsExist() {
         bucket === STORAGE_BUCKETS.pdfs
           ? {
               public: true,
-              fileSizeLimit: 209715200, // 200MB — A4 print PDFs comfortably fit
+              fileSizeLimit: 52428800, // 50MB — Supabase's max bucket limit; A4 PDFs fit comfortably
               allowedMimeTypes: ['application/pdf'],
             }
           : {
@@ -29,7 +29,12 @@ export async function ensureBucketsExist() {
               fileSizeLimit: 5242880, // 5MB
               allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
             };
-      await supabase.storage.createBucket(bucket, options);
+      const { error } = await supabase.storage.createBucket(bucket, options);
+      if (error) {
+        // Concurrent writers can race; an existing bucket is not a failure.
+        if (/already exists/i.test(error.message)) continue;
+        throw new Error(`Could not create storage bucket "${bucket}": ${error.message}`);
+      }
     }
   }
 }

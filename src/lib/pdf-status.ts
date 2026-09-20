@@ -193,23 +193,33 @@ async function setStatusFailed(message: string): Promise<void> {
 /**
  * Uploads the freshly generated PDF at the fixed storage path with upsert
  * (replacing the previous file in place) and removes any stray PDF files so
- * the bucket only ever holds the one current catalogue PDF.
+ * the bucket only ever holds the one current catalogue PDF. Bucket creation
+ * errors are surfaced (they are now thrown from ensureBucketsExist) and a
+ * short retry covers stale-bucket visibility right after creation.
  */
 async function uploadPdf(buffer: Buffer): Promise<{ fileSize: number }> {
   const supabase = createServiceClient();
   await ensureBucketsExist();
 
-  const { error } = await supabase.storage
-    .from(PDF_BUCKET)
-    .upload(PDF_FILE_PATH, buffer, {
-      contentType: 'application/pdf',
-      upsert: true,
-      cacheControl: 'no-cache',
-    });
-  if (error) throw new Error(`PDF upload failed: ${error.message}`);
-
-  await removeStrayPdfs();
-  return { fileSize: buffer.byteLength };
+  let lastError: string | null = null;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const { error } = await supabase.storage
+      .from(PDF_BUCKET)
+      .upload(PDF_FILE_PATH, buffer, {
+        contentType: 'application/pdf',
+        upsert: true,
+        cacheControl: 'no-cache',
+      });
+    if (!error) {
+      await removeStrayPdfs();
+      return { fileSize: buffer.byteLength };
+    }
+    lastError = error.message;
+    // Only retry when the freshly created bucket is not visible yet.
+    if (lastError && !/bucket not found/i.test(lastError)) break;
+    await new Promise((resolve) => setTimeout(resolve, 600));
+  }
+  throw new Error(`PDF upload failed: ${lastError}`);
 }
 
 async function removeStrayPdfs(): Promise<void> {

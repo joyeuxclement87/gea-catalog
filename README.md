@@ -41,7 +41,7 @@ A document-first product catalogue built with Next.js 16, Supabase, and Tailwind
    - `category-images` (public, 5MB limit, image types)
    - `catalogue-cover` (public, 5MB limit, image types)
    - `catalogue-sections` (public, 5MB limit, image types)
-   - `catalogue-pdfs` (public, 200MB limit, `application/pdf` only) — created automatically on first PDF generation if missing
+   - `catalogue-pdfs` (public, 50MB limit, `application/pdf` only) — created automatically on first PDF generation if missing
 
 ### 2. Configure Environment
 
