@@ -1,18 +1,19 @@
 import type { Metadata } from "next";
-import { Instrument_Sans, Newsreader } from "next/font/google";
+import { Manrope, DM_Serif_Display } from "next/font/google";
 import { getCategories, getProducts, getOrderedCategories } from "@/lib/catalog-supabase";
 import "./globals.css";
 
-const sans = Instrument_Sans({
+const sans = Manrope({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
 });
 
-const serif = Newsreader({
+const serif = DM_Serif_Display({
   subsets: ["latin"],
   variable: "--font-serif",
   display: "swap",
+  weight: "400",
   style: ["normal", "italic"],
 });
 
