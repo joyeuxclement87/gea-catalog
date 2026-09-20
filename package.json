@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "import": "tsx scripts/run-import.ts"
+    "import": "tsx scripts/run-import.ts",
+    "pdf:export": "tsx scripts/export-pdf.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -26,6 +27,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
+    "playwright": "^1.55.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

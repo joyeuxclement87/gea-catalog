@@ -2,6 +2,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 type SearchEntry = { name: string; href: string; category: string };
 
@@ -22,10 +23,10 @@ export function CatalogueToolbar({ products }: { products: SearchEntry[] }) {
   const showPanel = focused && results !== null;
 
   return (
-    <div className="sticky top-0 z-40 border-b border-[var(--line)] bg-white/95 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-[1360px] items-center gap-4 px-3 py-2.5 sm:px-6 sm:gap-6">
+    <div className="print-hidden sticky top-0 z-40 border-b border-[var(--line)] bg-white/90 backdrop-blur-md">
+      <div className="mx-auto flex max-w-[1360px] items-center gap-4 px-4 py-3 sm:gap-6 sm:px-8">
         <Link href="#cover" aria-label="Back to cover" className="shrink-0 leading-none">
-          <img
+          <Image
             src="/GEA - logo.png"
             alt="GEA"
             width={3480}
@@ -50,7 +51,7 @@ export function CatalogueToolbar({ products }: { products: SearchEntry[] }) {
               e.preventDefault();
               if (results && results[0]) router.push(results[0].href);
             }}
-            className="flex items-center gap-2 border border-[var(--line)] bg-[var(--paper-2)] px-2.5 py-1.5 transition-colors focus-within:border-[var(--line-strong)]"
+            className="flex items-center gap-2 border border-[var(--line)] bg-[var(--paper-2)] px-3 py-2 transition-colors focus-within:border-[var(--accent)] focus-within:bg-white"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-[var(--muted)]" aria-hidden>
               <circle cx="11" cy="11" r="7" />

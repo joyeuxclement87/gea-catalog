@@ -1,4 +1,5 @@
 import type { Category, Product } from "@/lib/supabase-types";
+import Image from "next/image";
 import { folio, sectionCount } from "@/lib/catalog-supabase";
 import { CatalogueShell, Hairline, FolioFooter } from "./CatalogueShell";
 import { ProductCard } from "./ProductCard";
@@ -22,70 +23,51 @@ export function CataloguePaper({ categories, products }: Props) {
     href: `/catalogue/${p.categorySlug}/${p.slug}`,
   }));
 
-  // Find cover image from categories or use first category image
-  const coverImage = categories.find(c => c.image)?.image ?? null;
+  const coverImage = "/images/cover/cover.jpg";
 
   return (
     <CatalogueShell>
       <CatalogueToolbar products={searchEntries} />
 
       {/* ── COVER ───────────────────────────────────────────── */}
-      <section id="cover" className="scroll-mt-12">
-        <div className="px-6 pt-16 sm:px-12 sm:pt-20">
+      <section id="cover" className="catalogue-cover scroll-mt-12">
+        <div className="px-6 pb-10 pt-14 sm:px-12 sm:pb-14 sm:pt-16">
           <div className="flex items-start justify-between gap-6">
-            <img
+            <Image
               src="/GEA - logo.png"
               alt="GEA"
               width={3480}
               height={1588}
               className="h-10 w-auto sm:h-12"
             />
-            <p className="label pt-2 text-[var(--muted)]">General Engineering &#183; 2026</p>
+            <p className="label pt-2 text-[var(--muted)]">Product catalogue &#183; 2026</p>
           </div>
 
-          <div className="mt-14 flex justify-center sm:mt-20">
-            <span className="h-px w-12 bg-[var(--accent)]" />
-          </div>
-
-          <h1 className="balance mt-10 text-center font-serif text-[clamp(48px,12vw,120px)] font-[380] leading-[0.88] tracking-[-0.04em] text-[var(--ink)]">
-            Product
-            <br />
-            <em className="font-[320]">Catalogue</em>
+          <h1 className="balance mt-24 text-center font-serif text-[clamp(48px,12vw,120px)] font-[380] leading-[0.88] tracking-[-0.04em] text-[var(--ink)] sm:mt-32">
+            Product <em className="font-[320]">Catalogue</em>
           </h1>
 
-          <p className="mt-14 text-center label text-[var(--muted)] tracking-[0.24em]">
-            Edition One
-            <br className="sm:hidden" />
-            <span className="mx-2 hidden sm:inline text-[var(--muted-2)]">&#183;</span>
-            {products.length} products &#183; {categories.length} sections
+          <p className="mt-8 text-center label text-[var(--muted)] tracking-[0.24em]">
+            Edition One &#183; 2026
           </p>
         </div>
 
-        <div className="mt-16 px-6 sm:mt-24 sm:px-12">
+        <div className="px-6 sm:px-12">
           <div className="relative aspect-[4/3] overflow-hidden border border-[var(--line)] bg-[var(--paper-2)] sm:aspect-[16/9]">
             <CoverImage imageUrl={coverImage} className="object-cover" />
           </div>
         </div>
 
-        <div className="flex items-center justify-between px-6 pt-10 sm:px-12">
-          <p className="label text-[var(--muted)]">Building materials &#183; Electrical &#183; Safety &#183; Sanitary</p>
+        <div className="flex items-center justify-between px-6 py-6 sm:px-12">
+          <p className="label text-[var(--muted)]">General Engineering</p>
           <p className="label tabular-nums text-[var(--muted)]">01</p>
-        </div>
-
-        <div className="px-6 pb-16 pt-16 text-center sm:px-12">
-          <a
-            href="#contents"
-            className="inline-block border border-[var(--ink)] px-10 py-4 label text-[var(--ink)] transition-colors hover:bg-[var(--ink)] hover:text-[var(--paper)]"
-          >
-            OPEN THE CATALOGUE &#8595;
-          </a>
         </div>
       </section>
 
       <Hairline />
 
       {/* ── CONTENTS ────────────────────────────────────────── */}
-      <section id="contents" className="scroll-mt-12">
+      <section id="contents" className="catalogue-contents scroll-mt-12">
         <div className="px-6 py-12 sm:px-10 sm:py-16">
           <div className="flex items-center gap-4">
             <span className="label tabular-nums text-[var(--accent)]">02</span>
@@ -134,7 +116,7 @@ export function CataloguePaper({ categories, products }: Props) {
         const folioNum = folio(i + 3);
         const sectionNum = String(i + 1).padStart(2, "0");
         return (
-          <section key={c.slug} id={`cat-${c.slug}`} className="scroll-mt-12">
+          <section key={c.slug} id={`cat-${c.slug}`} className="catalogue-category scroll-mt-12">
             {/* divider — reads as a new chapter */}
             <div className="px-6 pt-14 sm:px-10 sm:pt-20">
               <div className="flex items-center gap-4">
@@ -147,6 +129,9 @@ export function CataloguePaper({ categories, products }: Props) {
               <h2 className="balance mt-5 max-w-[18ch] font-serif text-[clamp(32px,6.5vw,50px)] font-[440] leading-[0.96] tracking-[-0.025em] text-[var(--ink)]">
                 {c.name}
               </h2>
+              {c.description ? (
+                <p className="mt-4 max-w-[52ch] font-serif text-[15px] leading-relaxed text-[var(--ink-2)]">{c.description}</p>
+              ) : null}
               <div className="mt-6 h-px w-16 bg-[var(--ink)]" aria-hidden />
             </div>
 
@@ -162,7 +147,7 @@ export function CataloguePaper({ categories, products }: Props) {
 
             {/* product grid — dense, quiet, framed like printed plates */}
             <div className="border-b border-[var(--line)]">
-              <div className="grid grid-cols-2 gap-px bg-[var(--line)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              <div className="catalogue-product-grid grid grid-cols-2 gap-px bg-[var(--line)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {productsInCategory.map((p) => (
                   <ProductCard key={p.id} product={p} />
                 ))}
@@ -180,7 +165,7 @@ export function CataloguePaper({ categories, products }: Props) {
       <Hairline />
 
       {/* ── CLOSING NOTE ────────────────────────────────────── */}
-      <section id="contact" className="scroll-mt-12">
+      <section id="contact" className="catalogue-contact scroll-mt-12">
         <div className="px-6 py-12 sm:px-10 sm:py-16">
           <div className="flex items-center gap-4">
             <span className="label tabular-nums text-[var(--accent)]">{folio(total)}</span>
@@ -190,12 +175,11 @@ export function CataloguePaper({ categories, products }: Props) {
 
           <div className="mt-8 grid gap-10 border-t border-[var(--line)] pt-8 sm:grid-cols-2">
             <div>
-              <h3 className="font-serif text-[22px] font-[450] tracking-[-0.01em] text-[var(--ink)]">Catalogue desk</h3>
+              <h3 className="font-serif text-[22px] font-[450] tracking-[-0.01em] text-[var(--ink)]">Need more information?</h3>
               <p className="mt-3 max-w-[44ch] font-sans text-[13.5px] leading-relaxed text-[var(--ink-2)]">
-                For specifications, technical sheets, stock and quotations, contact the catalogue desk. This is a
-                document-first catalogue; pricing and ordering are handled separately.
+                Contact details and technical information are available directly from GEA. This catalogue is for
+                product reference; pricing and ordering are handled separately.
               </p>
-              <p className="mt-5 font-sans text-[12px] tracking-[0.06em] text-[var(--muted)]">catalogue@gea.example &#160;&#183;&#160; +00 000 000 000</p>
             </div>
             <div className="sm:justify-self-end">
               <p className="label text-[9.5px] text-[var(--muted)]">Edition</p>

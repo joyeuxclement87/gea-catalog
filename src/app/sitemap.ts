@@ -1,10 +1,10 @@
 import type { MetadataRoute } from "next";
-import { getProducts, getOrderedCategories } from "@/lib/catalog";
+import { getCategories, getProducts, getOrderedCategories } from "@/lib/catalog-supabase";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const base = "https://gea-catalog.local";
-  const categories = getOrderedCategories();
-  const products = getProducts();
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gea-catalog.local";
+  const categories = getOrderedCategories(await getCategories());
+  const products = await getProducts();
 
   const now = new Date();
 

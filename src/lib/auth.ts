@@ -2,6 +2,7 @@ import { createServerClient } from './supabase';
 
 export async function getSession() {
   const supabase = await createServerClient();
+  if (!supabase) return null;
   const { data: { session } } = await supabase.auth.getSession();
   return session;
 }
@@ -21,6 +22,9 @@ export async function requireAuth() {
 
 export async function signIn(email: string, password: string) {
   const supabase = await createServerClient();
+  if (!supabase) {
+    return { data: null, error: new Error('Supabase is not configured.') };
+  }
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -30,5 +34,6 @@ export async function signIn(email: string, password: string) {
 
 export async function signOut() {
   const supabase = await createServerClient();
+  if (!supabase) return;
   await supabase.auth.signOut();
 }

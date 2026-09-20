@@ -40,7 +40,7 @@ export function PageNav({ sectionIds }: Props) {
     "rounded-full px-3 py-1.5 label text-[var(--ink)] transition-colors hover:bg-black/[0.05] disabled:opacity-25 disabled:hover:bg-transparent";
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 pb-3 sm:pb-6">
+    <div className="print-hidden pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 pb-3 sm:pb-6">
       <nav
         className="pointer-events-auto flex items-center gap-0.5 rounded-full border border-[var(--line-strong)] bg-white/95 py-1 pl-1 pr-1 shadow-[0_12px_36px_rgba(20,18,12,0.16)] backdrop-blur"
         aria-label="Catalogue pages"

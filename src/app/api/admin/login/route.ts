@@ -4,6 +4,9 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   const { email, password } = await request.json();
   const supabase = await createServerClient();
+  if (!supabase) {
+    return NextResponse.json({ error: 'Supabase is not configured.' }, { status: 503 });
+  }
 
   const { error } = await supabase.auth.signInWithPassword({
     email,

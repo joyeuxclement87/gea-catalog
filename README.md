@@ -139,6 +139,20 @@ The public catalogue at `/catalogue` features:
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
 - `npm run import` - Import Excel data to Supabase
+- `npm run pdf:export -- ./gea-catalogue-2026.pdf` - Export the public catalogue using its print stylesheet
+
+### PDF export
+
+Start the app first, then export the same `/catalogue` route used by the website:
+
+```bash
+npx playwright install chromium
+npm run dev
+CATALOGUE_URL=http://localhost:3000/catalogue npm run pdf:export -- ./gea-catalogue-2026.pdf
+```
+
+The exporter waits for fonts and images, applies print media, and writes an A4 PDF. Set
+`NEXT_PUBLIC_SITE_URL` for deployed canonical URLs and `CATALOGUE_URL` when exporting from a different host.
 
 ## Database Schema
 

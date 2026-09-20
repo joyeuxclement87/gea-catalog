@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Instrument_Sans, Newsreader } from "next/font/google";
-import { getProducts, getOrderedCategories } from "@/lib/catalog";
+import { getCategories, getProducts, getOrderedCategories } from "@/lib/catalog-supabase";
 import "./globals.css";
 
 const sans = Instrument_Sans({
@@ -16,16 +16,17 @@ const serif = Newsreader({
   style: ["normal", "italic"],
 });
 
-export function generateMetadata(): Metadata {
-  const products = getProducts();
-  const categories = getOrderedCategories();
+export async function generateMetadata(): Promise<Metadata> {
+  const products = await getProducts();
+  const categories = getOrderedCategories(await getCategories());
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gea-catalog.local";
   return {
     title: {
       default: "GEA — Product Catalogue 2026",
       template: "%s — GEA Catalogue",
     },
     description: `GEA Product Catalogue 2026 — ${products.length} products across ${categories.length} sections: aluminium, electrical, fire fighting, plumbing, safety, security, tiles & sanitary wares. A document-first catalogue, not an online store.`,
-    metadataBase: new URL("https://gea-catalog.local"),
+    metadataBase: new URL(siteUrl),
     openGraph: {
       title: "GEA — Product Catalogue 2026",
       description: `${products.length} products across ${categories.length} trade sections. A printed catalogue, on the web.`,
