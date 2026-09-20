@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getUser } from '@/lib/auth';
 import AdminNav from './AdminNav';
+import { BackToTop } from '@/components/BackToTop';
 
 export const metadata: Metadata = {
   title: 'GEA Catalogue Admin',
@@ -48,6 +49,8 @@ export default async function AdminLayout({
           {children}
         </section>
       </div>
+
+      <BackToTop />
     </main>
   );
 }

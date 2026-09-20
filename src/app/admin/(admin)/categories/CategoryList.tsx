@@ -272,12 +272,12 @@ function CategoryForm({
   onSuccess: () => void;
 }) {
   const [formData, setFormData] = useState({
-    name: '',
-    slug: '',
-    description: '',
-    display_order: 0,
-    status: 'published',
-    image: '',
+    name: category?.name ?? '',
+    slug: category?.slug ?? '',
+    description: category?.description ?? '',
+    display_order: category?.display_order ?? 0,
+    status: category?.status ?? 'published',
+    image: category?.image ?? '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -392,22 +392,34 @@ function CategoryForm({
           </div>
 
           <div>
-            {category ? (
+            {category && (
               <ImageUploader
                 endpoint={`/api/admin/categories/${category.id}/image`}
                 value={category.image}
                 field="image"
                 label="Category image"
-                hint="Shown as the section cover in the catalogue. JPG, PNG or WebP up to 5 MB."
+                hint="Upload from this device. JPG, PNG or WebP up to 5 MB."
+                onChange={(url) => setFormData((prev) => ({ ...prev, image: url ?? '' }))}
               />
-            ) : (
-              <div>
-                <label className="mb-1 block text-sm font-medium text-[var(--ink-2)]">Category image</label>
-                <p className="border border-dashed border-[var(--line-strong)] bg-[var(--paper-2)] p-3 text-xs text-[var(--muted)]">
-                  Create the category first, then upload its image from the edit screen.
-                </p>
-              </div>
             )}
+            <div className={category ? "mt-6" : undefined}>
+              <label className="mb-1 block text-sm font-medium text-[var(--ink-2)]">
+                {category ? "Or paste an image link" : "Category image (link)"}
+              </label>
+              <input
+                name="image"
+                type="url"
+                value={formData.image}
+                onChange={handleChange}
+                placeholder="https://..."
+                className={inputClass}
+              />
+              {!category && (
+                <p className="mt-2 text-xs text-[var(--muted)]">
+                  Pasted links apply immediately on save. To upload a file instead, create the category first, then upload from the edit screen.
+                </p>
+              )}
+            </div>
           </div>
 
           <div>

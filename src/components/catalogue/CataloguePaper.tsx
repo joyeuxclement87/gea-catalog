@@ -9,7 +9,6 @@ import { ProductCard } from "./ProductCard";
 import { CoverImage, CategoryImage } from "./ProductImage";
 import { CatalogueToolbar } from "./CatalogueToolbar";
 import { PageNav } from "./PageNav";
-import { BackToTop } from "./BackToTop";
 
 type Props = {
   categories: Category[];
@@ -301,7 +300,6 @@ export async function CataloguePaper({ categories, products, sections = [] }: Pr
       <FolioFooter left="GEA catalogue — 2026" right={`Page ${folio(total)} / ${folio(total)}`} />
 
       <PageNav sectionIds={sectionIds} />
-      <BackToTop />
     </CatalogueShell>
   );
 }

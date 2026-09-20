@@ -1,12 +1,20 @@
 "use client";
 import { useEffect, useState } from "react";
 import { folio } from "@/lib/catalog";
-import { IconBook2, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import { IconArrowUp, IconBook2, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 
 type Props = { sectionIds: string[] };
 
 export function PageNav({ sectionIds }: Props) {
   const [current, setCurrent] = useState(0);
+  const [showTop, setShowTop] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setShowTop(window.scrollY > 500);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     const els = sectionIds.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
@@ -36,6 +44,7 @@ export function PageNav({ sectionIds }: Props) {
     typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const go = (id: string) =>
     document.getElementById(id)?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+  const goTop = () => window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
 
   const btn =
     "flex items-center gap-2 rounded-full px-4 py-2.5 text-[0.6875rem]! uppercase tracking-[0.14em] font-medium text-[var(--ink)] transition-colors hover:bg-[var(--brand-blue-light)] hover:text-[var(--brand-blue-dark)] disabled:opacity-25 disabled:hover:bg-transparent disabled:hover:text-[var(--ink)]";
@@ -64,6 +73,17 @@ export function PageNav({ sectionIds }: Props) {
           <span className="hidden sm:inline">Next</span>
           <IconChevronRight size={18} stroke={1.8} aria-hidden />
         </button>
+        {showTop && (
+          <button
+            type="button"
+            onClick={goTop}
+            aria-label="Back to top"
+            title="Back to top"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-blue)] text-white shadow-[0_6px_16px_rgba(13,57,112,0.35)] transition-colors hover:bg-[var(--brand-blue-dark)] focus-visible:outline-2 focus-visible:outline-[var(--brand-blue)]"
+          >
+            <IconArrowUp size={18} stroke={2.2} aria-hidden />
+          </button>
+        )}
       </nav>
     </div>
   );
