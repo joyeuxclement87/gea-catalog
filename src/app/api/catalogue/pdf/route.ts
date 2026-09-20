@@ -1,13 +1,19 @@
-import { chromium } from "playwright";
+import chromium from "@sparticuz/chromium";
+import { chromium as playwrightChromium } from "playwright-core";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function GET(request: Request) {
-  const browser = await chromium.launch({ headless: true });
+  let browser: Awaited<ReturnType<typeof playwrightChromium.launch>> | null = null;
 
   try {
+    browser = await playwrightChromium.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath(),
+      headless: true,
+    });
     const catalogueUrl = new URL("/catalogue", request.url);
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
     await page.goto(catalogueUrl.toString(), { waitUntil: "networkidle" });
@@ -42,6 +48,6 @@ export async function GET(request: Request) {
     console.error("Catalogue PDF download failed", error);
     return NextResponse.json({ error: "Unable to generate the catalogue PDF." }, { status: 500 });
   } finally {
-    await browser.close();
+    await browser?.close();
   }
 }

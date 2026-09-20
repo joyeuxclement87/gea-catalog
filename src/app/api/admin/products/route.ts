@@ -1,7 +1,10 @@
 import { createServiceClient } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/admin-api';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
+  const unauthorized = await requireAdmin();
+  if (unauthorized) return unauthorized;
   const supabase = createServiceClient();
   const { searchParams } = new URL(request.url);
 
@@ -10,11 +13,19 @@ export async function GET(request: NextRequest) {
   const search = searchParams.get('search') || '';
   const categoryId = searchParams.get('category') || '';
   const status = searchParams.get('status') || '';
+  const sort = searchParams.get('sort') || 'updated';
+  const sortConfig = sort === 'name_asc'
+    ? { column: 'name', ascending: true }
+    : sort === 'name_desc'
+      ? { column: 'name', ascending: false }
+      : sort === 'created'
+        ? { column: 'created_at', ascending: false }
+        : { column: 'updated_at', ascending: false };
 
   let query = supabase
     .from('products')
-    .select('*, category:categories(*)', { count: 'exact' })
-    .order('created_at', { ascending: false })
+    .select('*, category:categories(*), product_images(*)', { count: 'exact' })
+    .order(sortConfig.column, { ascending: sortConfig.ascending })
     .range((page - 1) * limit, page * limit - 1);
 
   if (search) query = query.ilike('name', `%${search}%`);
@@ -34,6 +45,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const unauthorized = await requireAdmin();
+  if (unauthorized) return unauthorized;
   const supabase = createServiceClient();
   const body = await request.json();
 

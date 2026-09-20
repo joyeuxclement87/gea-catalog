@@ -1,7 +1,10 @@
 import { createServiceClient } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/admin-api';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
+  const unauthorized = await requireAdmin();
+  if (unauthorized) return unauthorized;
   const supabase = createServiceClient();
   const { updates } = await request.json();
 

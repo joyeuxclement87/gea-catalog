@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import ProductImageManager from '@/components/admin/ProductImageManager';
 
 interface ProductListProps {
   products: any[];
@@ -13,6 +14,7 @@ interface ProductListProps {
   search: string;
   categoryId: string;
   status: string;
+  sort: string;
   action?: string;
 }
 
@@ -28,6 +30,7 @@ export default function ProductList({
   search,
   categoryId,
   status,
+  sort,
   action,
 }: ProductListProps) {
   const router = useRouter();
@@ -123,7 +126,7 @@ export default function ProductList({
             name="search"
             type="search"
             placeholder="Search products…"
-            value={search}
+            defaultValue={search}
             className={inputClass}
           />
         </div>
@@ -148,6 +151,18 @@ export default function ProductList({
           <option value="published">Published</option>
           <option value="draft">Draft</option>
         </select>
+        <select
+          name="sort"
+          value={sort}
+          onChange={(e) => handleFilterChange('sort', e.target.value)}
+          className={`${inputClass} w-auto`}
+          aria-label="Sort products"
+        >
+          <option value="updated">Recently updated</option>
+          <option value="created">Recently added</option>
+          <option value="name_asc">Name A–Z</option>
+          <option value="name_desc">Name Z–A</option>
+        </select>
       </form>
 
       <div className="overflow-hidden border border-[var(--line)] bg-[var(--paper)]">
@@ -156,6 +171,7 @@ export default function ProductList({
             <tr>
               <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">Product</th>
               <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">Category</th>
+              <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">Images</th>
               <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">Status</th>
               <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">Price</th>
               <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">Actions</th>
@@ -180,6 +196,7 @@ export default function ProductList({
                   </div>
                 </td>
                 <td className="px-4 py-4 text-sm text-[var(--ink-2)]">{product.category?.name || '—'}</td>
+                <td className="px-4 py-4 text-sm text-[var(--ink-2)]">{product.product_images?.length ?? (product.image ? 1 : 0)} images</td>
                 <td className="px-4 py-4">
                   <StatusBadge status={product.status} />
                 </td>
@@ -301,17 +318,18 @@ function ProductForm({
   onSuccess: () => void;
 }) {
   const [formData, setFormData] = useState({
-    name: '',
-    slug: '',
-    category_id: '',
-    image: '',
-    description: '',
-    price: '',
-    sku: '',
-    status: 'published',
+    name: product?.name ?? '',
+    slug: product?.slug ?? '',
+    category_id: product?.category_id ?? '',
+    image: product?.image ?? '',
+    description: product?.description ?? '',
+    price: product?.price ? String(product.price) : '',
+    sku: product?.sku ?? '',
+    status: product?.status ?? 'published',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [pendingImages, setPendingImages] = useState<File[]>([]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -336,11 +354,28 @@ function ProductForm({
       body: JSON.stringify(payload),
     });
 
+    const result = await res.json();
     if (!res.ok) {
-      const data = await res.json();
-      setError(data.error || 'Failed to save');
+      setError(result.error || 'Failed to save');
       setLoading(false);
       return;
+    }
+
+    if (!product && pendingImages.length > 0) {
+      for (const file of pendingImages) {
+        const imageForm = new FormData();
+        imageForm.append('file', file);
+        const imageResponse = await fetch(`/api/admin/products/${result.id}/images`, {
+          method: 'POST',
+          body: imageForm,
+        });
+        if (!imageResponse.ok) {
+          const imageResult = await imageResponse.json();
+          setError(imageResult.error || 'Product saved, but an image upload failed.');
+          setLoading(false);
+          return;
+        }
+      }
     }
 
     onSuccess();
@@ -419,6 +454,41 @@ function ProductForm({
               <img src={formData.image} alt="Preview" className="mt-2 max-h-32 border border-[var(--line)]" />
             )}
           </div>
+
+          {product ? (
+            <ProductImageManager
+              productId={product.id}
+              initialImages={product.product_images ?? []}
+            />
+          ) : (
+            <div className="border-t border-[var(--line)] pt-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h3 className="font-serif text-[22px] text-[var(--ink)]">Product images</h3>
+                  <p className="mt-1 text-sm text-[var(--muted)]">{pendingImages.length} / 5 images selected. You can manage them after saving.</p>
+                </div>
+                <label className="shrink-0 cursor-pointer border border-[var(--line-strong)] px-3 py-2 text-sm font-medium text-[var(--ink-2)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
+                  Choose images
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(event) => {
+                      const selected = Array.from(event.target.files ?? []).slice(0, 5);
+                      setPendingImages(selected);
+                      event.currentTarget.value = '';
+                    }}
+                  />
+                </label>
+              </div>
+              {pendingImages.length > 0 ? (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {pendingImages.map((file) => <span key={`${file.name}-${file.size}`} className="border border-[var(--line)] bg-[var(--paper-2)] px-2 py-1 text-xs text-[var(--muted)]">{file.name}</span>)}
+                </div>
+              ) : null}
+            </div>
+          )}
 
           <div>
             <label className="mb-1 block text-sm font-medium text-[var(--ink-2)]">Description</label>

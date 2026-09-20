@@ -1,5 +1,5 @@
 import { createServerClient, createServiceClient } from './supabase';
-import type { Category, Product, ProductWithCategory } from './supabase-types';
+import type { Category, Product, ProductImage, ProductWithCategory } from './supabase-types';
 import { getProducts as getLocalProducts, getCategories as getLocalCategories, getOrderedCategories as getLocalOrderedCategories } from './catalog';
 
 async function getClient() {
@@ -44,7 +44,26 @@ function toSupabaseProduct(prod: any): Product {
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     category: undefined,
+    images: undefined,
   };
+}
+
+function normalizeProduct(prod: any): Product {
+  const images = (prod.product_images ?? prod.images ?? [])
+    .filter((image: ProductImage) => image?.image_url)
+    .sort((a: ProductImage, b: ProductImage) => a.display_order - b.display_order);
+  const primary = images.find((image: ProductImage) => image.is_primary) ?? images[0];
+
+  return {
+    ...prod,
+    image: primary?.image_url ?? prod.image ?? null,
+    images,
+    categorySlug: prod.category?.slug ?? prod.categorySlug ?? '',
+  } as Product;
+}
+
+function isMissingProductImages(error: { code?: string } | null): boolean {
+  return error?.code === 'PGRST200';
 }
 
 function toSupabaseProductWithCategory(prod: any): ProductWithCategory {
@@ -123,16 +142,22 @@ export async function getProducts(): Promise<Product[]> {
   const supabase = await getClient();
   const { data, error } = await supabase
     .from('products')
-    .select('*, category:categories(slug)')
+    .select('*, category:categories(slug), product_images(*)')
     .eq('status', 'published')
     .order('name', { ascending: true });
 
+  if (error && isMissingProductImages(error)) {
+    const { data: fallback, error: fallbackError } = await supabase
+      .from('products')
+      .select('*, category:categories(slug)')
+      .eq('status', 'published')
+      .order('name', { ascending: true });
+    if (fallbackError) throw fallbackError;
+    return (fallback ?? []).map(normalizeProduct);
+  }
   if (error) throw error;
   
-  return (data ?? []).map((p: any) => ({
-    ...p,
-    categorySlug: p.category?.slug ?? '',
-  })) as Product[];
+  return (data ?? []).map(normalizeProduct);
 }
 
 // For static generation (generateStaticParams) - uses service role
@@ -143,16 +168,22 @@ export async function getProductsStatic(): Promise<Product[]> {
   const supabase = getStaticClient();
   const { data, error } = await supabase
     .from('products')
-    .select('*, category:categories(slug)')
+    .select('*, category:categories(slug), product_images(*)')
     .eq('status', 'published')
     .order('name', { ascending: true });
 
+  if (error && isMissingProductImages(error)) {
+    const { data: fallback, error: fallbackError } = await supabase
+      .from('products')
+      .select('*, category:categories(slug)')
+      .eq('status', 'published')
+      .order('name', { ascending: true });
+    if (fallbackError) throw fallbackError;
+    return (fallback ?? []).map(normalizeProduct);
+  }
   if (error) throw error;
   
-  return (data ?? []).map((p: any) => ({
-    ...p,
-    categorySlug: p.category?.slug ?? '',
-  })) as Product[];
+  return (data ?? []).map(normalizeProduct);
 }
 
 export async function getProductsByCategory(categorySlug: string): Promise<Product[]> {
@@ -173,17 +204,24 @@ export async function getProductsByCategory(categorySlug: string): Promise<Produ
 
   const { data, error } = await supabase
     .from('products')
-    .select('*, category:categories(slug)')
+    .select('*, category:categories(slug), product_images(*)')
     .eq('category_id', category.id)
     .eq('status', 'published')
     .order('name', { ascending: true });
 
+  if (error && isMissingProductImages(error)) {
+    const { data: fallback, error: fallbackError } = await supabase
+      .from('products')
+      .select('*, category:categories(slug)')
+      .eq('category_id', category.id)
+      .eq('status', 'published')
+      .order('name', { ascending: true });
+    if (fallbackError) throw fallbackError;
+    return (fallback ?? []).map(normalizeProduct);
+  }
   if (error) throw error;
   
-  return (data ?? []).map((p: any) => ({
-    ...p,
-    categorySlug: p.category?.slug ?? '',
-  })) as Product[];
+  return (data ?? []).map(normalizeProduct);
 }
 
 export async function getProductBySlug(categorySlug: string, productSlug: string): Promise<ProductWithCategory | null> {
@@ -203,15 +241,26 @@ export async function getProductBySlug(categorySlug: string, productSlug: string
 
   const { data, error } = await supabase
     .from('products')
-    .select('*, category:categories(*)')
+    .select('*, category:categories(*), product_images(*)')
     .eq('category_id', category.id)
     .eq('slug', productSlug)
     .eq('status', 'published')
     .single();
 
+  if (error && isMissingProductImages(error)) {
+    const { data: fallback, error: fallbackError } = await supabase
+      .from('products')
+      .select('*, category:categories(*)')
+      .eq('category_id', category.id)
+      .eq('slug', productSlug)
+      .eq('status', 'published')
+      .single();
+    if (fallbackError || !fallback) return null;
+    return normalizeProduct(fallback) as ProductWithCategory;
+  }
   if (error) return null;
   
-  const product = data as ProductWithCategory;
+  const product = normalizeProduct(data) as ProductWithCategory;
   return {
     ...product,
     categorySlug: product.category?.slug ?? '',
@@ -233,17 +282,14 @@ export async function searchProducts(query: string): Promise<ProductWithCategory
 
   const { data, error } = await supabase
     .from('products')
-    .select('*, category:categories(*)')
+    .select('*, category:categories(*), product_images(*)')
     .eq('status', 'published')
     .or(`name.ilike.%${q}%,category.name.ilike.%${q}%`)
     .limit(20);
 
   if (error) throw error;
   
-  return (data ?? []).map((p: any) => ({
-    ...p,
-    categorySlug: p.category?.slug ?? '',
-  })) as ProductWithCategory[];
+  return (data ?? []).map((p: any) => normalizeProduct(p) as ProductWithCategory);
 }
 
 export async function getAllProductsAdmin(): Promise<Product[]> {

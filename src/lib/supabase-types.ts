@@ -1,6 +1,16 @@
 export type CategoryStatus = 'published' | 'draft';
 export type ProductStatus = 'published' | 'draft';
 
+export interface ProductImage {
+  id: string;
+  product_id: string;
+  image_url: string;
+  storage_path: string | null;
+  display_order: number;
+  is_primary: boolean;
+  created_at: string;
+}
+
 export interface Category {
   id: string;
   name: string;
@@ -28,6 +38,7 @@ export interface Product {
   created_at: string;
   updated_at: string;
   category?: Category;
+  images?: ProductImage[];
 }
 
 export interface ProductWithCategory extends Product {

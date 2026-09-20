@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
-type SearchEntry = { name: string; href: string; category: string };
+type SearchEntry = { name: string; href: string; category: string; image?: string | null };
 
 export function CatalogueToolbar({ products }: { products: SearchEntry[] }) {
   const router = useRouter();
@@ -121,9 +121,14 @@ export function CatalogueToolbar({ products }: { products: SearchEntry[] }) {
                 <ul>
                   {results!.map((p) => (
                     <li key={p.href} className="border-b border-[var(--line)] last:border-0">
-                      <Link href={p.href} className="group block px-4 py-2.5 transition-colors hover:bg-[var(--paper-2)]">
-                        <span className="block truncate font-serif text-[14px] leading-snug text-[var(--ink)]">{p.name}</span>
-                        <span className="label mt-0.5 block truncate text-[9px] text-[var(--muted)]">{p.category}</span>
+                      <Link href={p.href} className="group flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-[var(--paper-2)]">
+                        <span className="relative h-9 w-9 shrink-0 overflow-hidden border border-[var(--line)] bg-[var(--paper-2)]">
+                          {p.image ? <Image src={p.image} alt="" width={36} height={36} className="h-full w-full object-contain p-0.5" /> : null}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block truncate font-serif text-[14px] leading-snug text-[var(--ink)]">{p.name}</span>
+                          <span className="label mt-0.5 block truncate text-[9px] text-[var(--muted)]">{p.category}</span>
+                        </span>
                       </Link>
                     </li>
                   ))}

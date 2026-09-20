@@ -8,8 +8,11 @@ export async function getSession() {
 }
 
 export async function getUser() {
-  const session = await getSession();
-  return session?.user ?? null;
+  const supabase = await createServerClient();
+  if (!supabase) return null;
+  const { data, error } = await supabase.auth.getUser();
+  if (error) return null;
+  return data.user ?? null;
 }
 
 export async function requireAuth() {

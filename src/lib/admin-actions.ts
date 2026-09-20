@@ -27,24 +27,54 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   };
 }
 
+export async function getRecentProductsAdmin(limit = 6) {
+  const supabase = getClient();
+  const { data, error } = await supabase
+    .from('products')
+    .select('id, name, image, updated_at, status, category:categories(name), product_images(image_url, is_primary)')
+    .order('updated_at', { ascending: false })
+    .limit(limit);
+
+  if (error?.code === 'PGRST200') {
+    const { data: fallback, error: fallbackError } = await supabase
+      .from('products')
+      .select('id, name, image, updated_at, status, category:categories(name)')
+      .order('updated_at', { ascending: false })
+      .limit(limit);
+    if (fallbackError) throw fallbackError;
+    return fallback ?? [];
+  }
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function getProductsAdmin({
   page = 1,
   limit = 20,
   search = '',
   categoryId = '',
   status = '',
+  sort = 'updated',
 }: {
   page?: number;
   limit?: number;
   search?: string;
   categoryId?: string;
   status?: string;
+  sort?: string;
 } = {}) {
   const supabase = getClient();
+  const sortConfig = sort === 'name_asc'
+    ? { column: 'name', ascending: true }
+    : sort === 'name_desc'
+      ? { column: 'name', ascending: false }
+      : sort === 'created'
+        ? { column: 'created_at', ascending: false }
+        : { column: 'updated_at', ascending: false };
   let query = supabase
     .from('products')
-    .select('*, category:categories(*)', { count: 'exact' })
-    .order('created_at', { ascending: false })
+    .select('*, category:categories(*), product_images(*)', { count: 'exact' })
+    .order(sortConfig.column, { ascending: sortConfig.ascending })
     .range((page - 1) * limit, page * limit - 1);
 
   if (search) {
@@ -58,6 +88,19 @@ export async function getProductsAdmin({
   }
 
   const { data, error, count } = await query;
+  if (error?.code === 'PGRST200') {
+    let fallbackQuery = supabase
+      .from('products')
+      .select('*, category:categories(*)', { count: 'exact' })
+      .order(sortConfig.column, { ascending: sortConfig.ascending })
+      .range((page - 1) * limit, page * limit - 1);
+    if (search) fallbackQuery = fallbackQuery.ilike('name', `%${search}%`);
+    if (categoryId) fallbackQuery = fallbackQuery.eq('category_id', categoryId);
+    if (status) fallbackQuery = fallbackQuery.eq('status', status);
+    const { data: fallback, error: fallbackError, count: fallbackCount } = await fallbackQuery;
+    if (fallbackError) throw fallbackError;
+    return { products: fallback ?? [], total: fallbackCount ?? 0, page, totalPages: Math.ceil((fallbackCount ?? 0) / limit) };
+  }
   if (error) throw error;
 
   return {

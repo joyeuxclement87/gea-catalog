@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 export function CatalogueShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen overflow-x-clip bg-[var(--desk)]">
-      <div className="mx-auto max-w-[1360px] px-0 py-0 sm:px-4 sm:py-8 lg:py-14">
+      <div className="mx-auto max-w-[1280px] px-0 py-0 sm:px-4 sm:py-8 lg:py-14">
         <div className="paper-shadow catalogue-sheet animate-[paper-in_0.55s_ease-out] overflow-hidden bg-white">{children}</div>
 
         {/* para-document note below the sheet */}

@@ -1,10 +1,13 @@
 import { createServiceClient } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/admin-api';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const unauthorized = await requireAdmin();
+  if (unauthorized) return unauthorized;
   const supabase = createServiceClient();
   const { id } = await params;
   const body = await request.json();
@@ -26,6 +29,8 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const unauthorized = await requireAdmin();
+  if (unauthorized) return unauthorized;
   const supabase = createServiceClient();
   const { id } = await params;
 

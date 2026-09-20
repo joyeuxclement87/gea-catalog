@@ -12,7 +12,7 @@ import {
   sectionCount,
 } from "@/lib/catalog-supabase";
 import { CatalogueShell } from "@/components/catalogue/CatalogueShell";
-import { ProductImage } from "@/components/catalogue/ProductImage";
+import { ProductGallery } from "@/components/catalogue/ProductGallery";
 
 type Params = { category: string; slug: string };
 
@@ -99,19 +99,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
           </div>
         </header>
 
-        {/* image */}
+        {/* image gallery */}
         <div className="mt-8 px-4 sm:px-8">
-          <div className="relative aspect-[4/3] overflow-hidden border border-[var(--line)] bg-[var(--paper-2)] sm:aspect-[16/10]">
-            <ProductImage
-              slug={product.slug}
-              name={product.name}
-              imageUrl={product.image}
-              fill
-              priority
-              sizes="(min-width: 640px) 836px, 100vw"
-              className="object-contain p-[5%]"
-            />
-          </div>
+          <ProductGallery slug={product.slug} name={product.name} imageUrl={product.image} images={product.images} />
         </div>
 
         {/* description */}

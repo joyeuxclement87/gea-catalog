@@ -7,6 +7,7 @@ interface ProductsPageProps {
     search?: string;
     category?: string;
     status?: string;
+    sort?: string;
     action?: string;
   }>;
 }
@@ -17,6 +18,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const search = params.search || '';
   const categoryId = params.category || '';
   const status = params.status || '';
+  const sort = params.sort || 'updated';
   const action = params.action;
 
   const categories = await getCategoriesAdmin();
@@ -25,6 +27,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     search,
     categoryId,
     status,
+    sort,
   });
 
   return <ProductList
@@ -36,6 +39,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     search={search}
     categoryId={categoryId}
     status={status}
+    sort={sort}
     action={action}
   />;
 }

@@ -17,8 +17,8 @@ export function ProductCard({ product }: { product: Product }) {
           className="object-contain p-[8%] transition-transform duration-500 group-hover:scale-[1.035]"
         />
       </div>
-      <div className="flex min-h-[104px] flex-1 flex-col justify-between gap-3 px-4 py-4 sm:px-5">
-        <h3 className="line-clamp-2 font-serif text-[15.5px] font-[480] leading-[1.24] tracking-[-0.015em] text-[var(--ink)]">
+      <div className="flex min-h-[92px] flex-1 flex-col justify-between gap-2.5 px-3.5 py-3.5 sm:min-h-[104px] sm:gap-3 sm:px-5 sm:py-4">
+        <h3 className="line-clamp-2 font-serif text-[14px] font-[480] leading-[1.24] tracking-[-0.015em] text-[var(--ink)] sm:text-[15.5px]">
           {product.name}
         </h3>
         <div className="flex items-center justify-between gap-2">

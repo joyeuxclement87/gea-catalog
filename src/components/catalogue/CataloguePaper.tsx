@@ -22,6 +22,7 @@ export function CataloguePaper({ categories, products }: Props) {
     name: p.name,
     category: p.category?.name ?? p.categorySlug,
     href: `/catalogue/${p.categorySlug}/${p.slug}`,
+    image: p.image,
   }));
 
   const coverImage = "/images/cover/cover.jpg";

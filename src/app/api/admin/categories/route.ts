@@ -1,7 +1,10 @@
 import { createServiceClient } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/admin-api';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET() {
+  const unauthorized = await requireAdmin();
+  if (unauthorized) return unauthorized;
   const supabase = createServiceClient();
 
   const { data, error } = await supabase
@@ -15,6 +18,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const unauthorized = await requireAdmin();
+  if (unauthorized) return unauthorized;
   const supabase = createServiceClient();
   const body = await request.json();
 
