@@ -1,6 +1,3 @@
-import chromium from "@sparticuz/chromium";
-import { chromium as playwrightChromium } from "playwright-core";
-
 /**
  * Renders the dedicated /catalogue/print route into an A4 PDF buffer using the
  * same Supabase data and GEA branding as the website — not a screenshot of the
@@ -15,24 +12,33 @@ export async function renderCataloguePdf(baseUrl?: string): Promise<Buffer> {
   ).replace(/\/+$/, "");
   const printUrl = new URL("/catalogue/print", resolvedBase).toString();
 
-  let browser: Awaited<ReturnType<typeof playwrightChromium.launch>> | null = null;
+  // Loaded lazily so pages and routes that only touch PDF status (the admin PDF
+  // page, status/download APIs, image uploads that mark the PDF outdated) never
+  // pull a browser library into their serverless bundles. puppeteer-core is
+  // used instead of playwright-core because it has no browsers.json registry
+  // lookup — that file is missed by Vercel's file tracing and broke every
+  // route in the pdf-status module graph on deployed (serverless) environments.
+  const [{ default: chromium }, { launch }] = await Promise.all([
+    import("@sparticuz/chromium"),
+    import("puppeteer-core"),
+  ]);
+
+  let browser: Awaited<ReturnType<typeof launch>> | null = null;
   try {
-    browser = await playwrightChromium.launch({
+    browser = await launch({
       args: chromium.args,
       executablePath: await chromium.executablePath(),
       headless: true,
     });
 
-    const page = await browser.newPage({
-      viewport: { width: 1440, height: 900 },
-      deviceScaleFactor: 1,
-    });
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
 
     await page
-      .goto(printUrl, { waitUntil: "networkidle", timeout: 90_000 })
+      .goto(printUrl, { waitUntil: "networkidle0", timeout: 90_000 })
       .catch(() => page.goto(printUrl, { waitUntil: "domcontentloaded", timeout: 90_000 }));
 
-    await page.emulateMedia({ media: "print" });
+    await page.emulateMediaType("print");
 
     await page.evaluate(async () => {
       await document.fonts.ready;

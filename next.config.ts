@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
       ? [{ protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/**" }]
       : [],
   },
+  // Keep the browser runtime out of the Turbopack bundle: Vercel ships external
+  // packages as whole node_modules directories, so the chromium binary under
+  // @sparticuz/chromium/bin and puppeteer-core's files (it has no browsers.json
+  // registry lookup, unlike playwright-core) are always present at runtime.
+  serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core"],
   outputFileTracingIncludes: {
     "/api/catalogue/pdf": ["./node_modules/@sparticuz/chromium/bin/**"],
     "/api/catalogue/pdf/cron": ["./node_modules/@sparticuz/chromium/bin/**"],
