@@ -1,6 +1,6 @@
 import { createServerClient, createServiceClient } from './supabase';
 import type { Category, CatalogueSection, Product, ProductImage, ProductWithCategory } from './supabase-types';
-import { getProducts as getLocalProducts, getCategories as getLocalCategories, getOrderedCategories as getLocalOrderedCategories } from './catalog';
+import { getProducts as getLocalProducts, getCategories as getLocalCategories } from './catalog';
 
 async function getClient() {
   return createServerClient();
@@ -333,21 +333,11 @@ export function sectionCount(categories: Category[]): number {
   return categories.length + 3;
 }
 
-const WORKBOOK_ORDER = [
-  'aluminium-equipments',
-  'camera-camera-accessories',
-  'electrical-equipment',
-  'fire-fighting-equipment',
-  'other-items',
-  'plumbing-equipment',
-  'safety-equipments',
-  'security-equipments',
-  'tiles-and-sanitary-wares',
-];
-
 export function getOrderedCategories(categories: Category[]): Category[] {
-  const bySlug = new Map(categories.map((c) => [c.slug, c]));
-  return WORKBOOK_ORDER.map((s) => bySlug.get(s)!).filter(Boolean);
+  // The admin Categories screen wins: reorder by display_order (ascending,
+  // stable for ties). getCategories() already returns them display_order-
+  // sorted; this guarantees the catalogue chapters mirror the admin list.
+  return categories.slice().sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
 }
 
 export async function getCategoryWithProductCount(slug: string): Promise<Category & { productCount: number } | null> {

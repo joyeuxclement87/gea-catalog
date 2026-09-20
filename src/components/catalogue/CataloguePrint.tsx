@@ -37,19 +37,18 @@ export async function CataloguePrint({ categories, products, sections = [] }: Pr
             className="h-9 w-auto"
             priority
           />
-          <p className="pdf-label pt-2 text-right text-[var(--brand-blue)]">
-            Global Engineering Agency
-            <br />
-            <span className="text-[var(--muted)]">Edition 2026</span>
-          </p>
+          <div className="pt-1 text-right">
+            <p className="pdf-label text-[var(--brand-blue)]">
+              Global Engineering Agency
+            </p>
+            <p className="pdf-label mt-2 text-[var(--muted)]">Edition 2026</p>
+          </div>
         </div>
 
         <div className="mt-[26mm]">
           <p className="pdf-label font-semibold tracking-[0.34em] text-[var(--brand-blue)]">GEA</p>
-          <h1 className="pdf-cover-title mt-2 font-serif font-[340] leading-[0.86] tracking-[-0.04em] text-[var(--ink)]">
-            Product
-            <br />
-            Catalogue
+          <h1 className="pdf-cover-title mt-3 font-serif font-[700] leading-none tracking-[-0.03em] text-[var(--brand-blue)]">
+            Product Catalogue
           </h1>
           <div className="mt-[7mm] h-[3px] w-14 bg-[var(--brand-blue)]" aria-hidden />
           <p className="pdf-cover-intro mt-[6mm] max-w-[42ch] font-serif leading-relaxed text-[var(--ink-2)]">
@@ -60,9 +59,18 @@ export async function CataloguePrint({ categories, products, sections = [] }: Pr
           </p>
         </div>
 
-        <div className="pdf-cover-image-wrap relative mt-[8mm] border border-[var(--line-strong)] bg-[var(--paper-2)]">
-          <PrintImage src={coverImage} alt="Product catalogue cover" className="h-full w-full object-cover" fallback={<CoverPlaceholder />} />
+        {/* frontispiece plate — cover shot in a drafting mat with blueprint
+            grid and corner crop marks, matching the section plates */}
+        <div className="pdf-cover-image-wrap relative mt-[10mm]">
+          <div>
+            <PrintImage src={coverImage} alt="Product catalogue cover" className="h-full w-full object-cover" fallback={<CoverPlaceholder />} />
+          </div>
         </div>
+        <p className="pdf-label mt-[3mm] flex items-center gap-3 text-[var(--muted)]">
+          <span>Fig. 00 &#8212; Frontispiece</span>
+          <span className="h-px flex-1 border-b border-dotted border-[var(--line-strong)]" aria-hidden />
+          <span className="text-[var(--brand-blue)]">GEA &#183; 2026</span>
+        </p>
 
         {/* two-tone feature strip — real product/category photos, branded
             blocks as fallback so the band is always full and intentional */}
@@ -139,64 +147,109 @@ export async function CataloguePrint({ categories, products, sections = [] }: Pr
       </section>
 
       {/* ── EDITORIAL SECTIONS (product-less dividers) ────────── */}
-      {sections.map((section, i) => (
-        <section key={section.id} className="pdf-page pdf-section">
-          <div className="flex items-center gap-4">
-            <span className="pdf-label tabular-nums font-semibold text-[var(--brand-blue)]">{String(i + 1).padStart(2, "0")}</span>
-            <span className="h-px w-8 bg-[var(--brand-blue)]" aria-hidden />
-            <span className="pdf-label text-[var(--muted)]">Catalogue section</span>
-          </div>
-          <h2 className="pdf-section-title mt-[6mm] max-w-[20ch] font-serif font-[440] leading-[0.96] text-[var(--ink)]">
-            {section.title}
-          </h2>
-          {section.description ? (
-            <p className="pdf-section-intro mt-[5mm] max-w-[52ch] font-serif leading-relaxed text-[var(--ink-2)]">
-              {section.description}
-            </p>
-          ) : null}
-          <div className="pdf-cat-img relative mt-[8mm] border-y border-[var(--line)] bg-[var(--brand-blue-light)]">
-            {section.image_url ? (
-              <PrintImage src={section.image_url} alt={section.title} className="h-full w-full object-cover" fallback={<CategoryPlaceholder name={section.title} />} />
-            ) : (
-              <div className="flex h-full items-center px-6">
-                <span className="pdf-label text-[var(--brand-blue)]">GEA &#183; {section.title}</span>
+      {sections.map((section, i) => {
+        const sectionNum = String(i + 1).padStart(2, "0");
+        return (
+          <section key={section.id} className="pdf-page pdf-section">
+            <div className="pdf-runhead">
+              <p className="pdf-label text-[var(--blue-tint-muted)]">
+                Catalogue section &#8212; {section.title}
+              </p>
+              <p className="pdf-label text-[var(--blue-tint-muted)]">GEA &#183; 2026</p>
+            </div>
+
+            <div className="pdf-opener">
+              <div>
+                <div className="flex items-center gap-4">
+                  <span className="pdf-label tabular-nums font-semibold text-[var(--blue-tint)]">{sectionNum}</span>
+                  <span className="h-px w-8 bg-[var(--blue-tint)]" aria-hidden />
+                  <span className="pdf-label text-[var(--blue-tint-muted)]">Catalogue section</span>
+                </div>
+                <h2 className="pdf-section-title mt-[6mm] max-w-[20ch] font-serif font-[440] leading-[0.96] text-white">
+                  {section.title}
+                </h2>
+                {section.description ? (
+                  <p className="pdf-section-intro mt-[5mm] max-w-[46ch] font-sans leading-[1.7] text-white/85">
+                    {section.description}
+                  </p>
+                ) : null}
+                <div className="mt-[7mm] flex items-center gap-3">
+                  <span className="h-[3px] w-12 bg-[var(--blue-tint)]" aria-hidden />
+                  <span className="h-px flex-1 bg-white/20" aria-hidden />
+                </div>
               </div>
-            )}
-          </div>
-        </section>
-      ))}
+
+              <figure className="pdf-plate">
+                <div className="pdf-plate-frame">
+                  <div>
+                    {section.image_url ? (
+                      <PrintImage src={section.image_url} alt={section.title} className="h-full w-full" fallback={<CategoryPlaceholder name={section.title} />} />
+                    ) : (
+                      <div className="flex h-full items-center justify-center">
+                        <span className="pdf-label text-[var(--blue-tint)]">GEA &#183; {section.title}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <figcaption className="pdf-label pt-[2.5mm] text-[var(--blue-tint-muted)]">
+                  Fig. {sectionNum} &#8212; {section.title} &#183; GEA section
+                </figcaption>
+              </figure>
+            </div>
+          </section>
+        );
+      })}
 
       {/* ── CATEGORY SECTIONS ─────────────────────────────────── */}
       {categories.map((c, i) => {
         const productsInCategory = byCategory(c.slug);
+        const sectionNum = String(i + 1).padStart(2, "0");
+        const count = productsInCategory.length;
         return (
           <section key={c.slug} className="pdf-page pdf-category">
-            <div className="flex items-center gap-4">
-              <span className="pdf-label tabular-nums font-semibold text-[var(--brand-blue)]">{String(i + 1).padStart(2, "0")}</span>
-              <span className="h-px w-8 bg-[var(--brand-blue)]" aria-hidden />
-              <span className="pdf-label text-[var(--muted)]">
-                {productsInCategory.length} product{productsInCategory.length === 1 ? "" : "s"}
-              </span>
-            </div>
-            <h2 className="pdf-category-title mt-[5mm] max-w-[18ch] font-serif font-[440] leading-[0.96] tracking-[-0.02em] text-[var(--ink)]">
-              {c.name}
-            </h2>
-            {c.description ? (
-              <p className="pdf-category-intro mt-[4mm] max-w-[52ch] font-serif leading-relaxed text-[var(--ink-2)]">
-                {c.description}
+            <div className="pdf-runhead">
+              <p className="pdf-label text-[var(--blue-tint-muted)]">
+                Section {sectionNum} &#8212; {c.name}
               </p>
-            ) : null}
-            <div className="mt-[5mm] h-[3px] w-12 bg-[var(--brand-blue)]" aria-hidden />
-
-            <div className="pdf-cat-img relative mt-[7mm] border-y border-[var(--line-strong)] bg-[var(--paper-2)]">
-              <PrintImage src={c.image} alt={`${c.name} — section cover`} className="h-full w-full object-cover" fallback={<CategoryPlaceholder name={c.name} />} />
+              <p className="pdf-label tabular-nums text-[var(--blue-tint-muted)]">{count} items</p>
             </div>
 
-            <p className="pdf-label pt-[4mm] text-[var(--muted)]">
-              Section {String(i + 1).padStart(2, "0")} &#183; {productsInCategory.length} items
-            </p>
+            <div className="pdf-opener">
+              <div>
+                <div className="flex items-center gap-4">
+                  <span className="pdf-label tabular-nums font-semibold text-[var(--blue-tint)]">{sectionNum}</span>
+                  <span className="h-px w-8 bg-[var(--blue-tint)]" aria-hidden />
+                  <span className="pdf-label text-[var(--blue-tint-muted)]">
+                    {count} product{count === 1 ? "" : "s"} in this section
+                  </span>
+                </div>
+                <h2 className="pdf-category-title mt-[5mm] max-w-[18ch] font-serif font-[440] leading-[0.96] tracking-[-0.02em] text-white">
+                  {c.name}
+                </h2>
+                {c.description ? (
+                  <p className="pdf-category-intro mt-[4mm] max-w-[46ch] font-sans leading-[1.7] text-white/85">
+                    {c.description}
+                  </p>
+                ) : null}
+                <div className="mt-[6.5mm] flex items-center gap-3">
+                  <span className="h-[3px] w-12 bg-[var(--blue-tint)]" aria-hidden />
+                  <span className="h-px flex-1 bg-white/20" aria-hidden />
+                </div>
+              </div>
 
-            <div className="pdf-grid mt-[5mm]">
+              <figure className="pdf-plate">
+                <div className="pdf-plate-frame">
+                  <div>
+                    <PrintImage src={c.image} alt={`${c.name} — section cover`} className="h-full w-full" fallback={<CategoryPlaceholder name={c.name} />} />
+                  </div>
+                </div>
+                <figcaption className="pdf-label pt-[2.5mm] text-[var(--blue-tint-muted)]">
+                  Fig. {sectionNum} &#8212; {c.name} &#183; {count} items
+                </figcaption>
+              </figure>
+            </div>
+
+            <div className="pdf-grid mt-[6mm]">
               {productsInCategory.map((p) => (
                 <article key={p.id} className="pdf-card border border-[var(--line)] bg-white">
                   <div className="pdf-card-img relative border-b border-[var(--line)] bg-[var(--paper-2)]">

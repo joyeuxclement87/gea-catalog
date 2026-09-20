@@ -23,7 +23,7 @@ export function ProductGallery({ slug, name, imageUrl, images = [] }: Props) {
 
   return (
     <div>
-      <div className="relative aspect-[4/3] overflow-hidden border border-[var(--line)] bg-[var(--paper-2)] sm:aspect-[16/10]">
+      <div className="product-gallery-window relative aspect-[4/3] overflow-hidden border border-[var(--line-strong)] bg-white sm:aspect-[16/10]">
         {selected ? (
           <Image
             src={selected.image_url}
@@ -39,7 +39,7 @@ export function ProductGallery({ slug, name, imageUrl, images = [] }: Props) {
       </div>
 
       {gallery.length > 1 ? (
-        <div className="mt-3 flex gap-2 overflow-x-auto" aria-label={`${name} images`}>
+        <div className="mt-4 flex gap-2 overflow-x-auto" aria-label={`${name} images`}>
           {gallery.map((image, index) => {
             const active = image.id === selected?.id;
             return (
@@ -47,7 +47,7 @@ export function ProductGallery({ slug, name, imageUrl, images = [] }: Props) {
                 key={image.id}
                 type="button"
                 onClick={() => setSelectedId(image.id)}
-                className={`relative h-14 w-14 shrink-0 overflow-hidden border bg-[var(--paper-2)] ${
+                className={`relative h-14 w-14 shrink-0 overflow-hidden border bg-white ${
                   active ? "border-[var(--accent)]" : "border-[var(--line)]"
                 }`}
                 aria-label={`View image ${index + 1}`}

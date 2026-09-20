@@ -41,7 +41,7 @@ export async function CataloguePaper({ categories, products, sections = [] }: Pr
 
       {/* ── COVER ───────────────────────────────────────────── */}
       <section id="cover" className="catalogue-cover scroll-mt-28">
-        <div className="relative px-6 pb-10 pt-12 sm:px-12 sm:pb-14 sm:pt-16">
+        <div className="relative px-6 pb-10 pt-12 sm:px-12 sm:pb-12 sm:pt-16">
           {/* blue vertical accent — restrained, printed-masthead feel */}
           <div className="absolute left-0 top-0 hidden h-full w-1 bg-[var(--brand-blue)] sm:block" aria-hidden />
 
@@ -53,21 +53,21 @@ export async function CataloguePaper({ categories, products, sections = [] }: Pr
               height={1588}
               className="h-10 w-auto sm:h-13"
             />
-            <p className="label pt-3 text-right text-[var(--brand-blue)]">
-              Global Engineering Agency
-              <br />
-              <span className="text-[var(--muted)]">Edition 2026</span>
-            </p>
+            <div className="pt-3 text-right">
+              <p className="label text-[var(--brand-blue)]">
+                Global Engineering Agency
+              </p>
+              <p className="label mt-2 text-[var(--muted)]">Edition 2026</p>
+              <span className="mx-auto mt-3 block h-px w-8 bg-[var(--line-strong)]" aria-hidden />
+            </div>
           </div>
 
-          <div className="mt-16 sm:mt-24 sm:pl-8">
+          <div className="mt-16 sm:mt-20 sm:pl-8">
             <p className="label font-semibold tracking-[0.34em] text-[var(--brand-blue)]">GEA</p>
-            <h1 className="balance mt-4 font-serif text-[clamp(54px,13vw,128px)] font-[340] leading-[0.86] tracking-[-0.045em] text-[var(--ink)]">
-              Product
-              <br />
-              Catalogue
+            <h1 className="balance mt-5 font-serif text-[clamp(28px,8vw,72px)] font-[700] leading-none tracking-[-0.03em] text-[var(--brand-blue)]">
+              Product Catalogue
             </h1>
-            <div className="mt-9 h-[3px] w-16 bg-[var(--brand-blue)]" aria-hidden />
+            <div className="mt-8 h-[3px] w-16 bg-[var(--brand-blue)]" aria-hidden />
             <p className="mt-6 max-w-[38ch] font-serif text-[15px] leading-relaxed text-[var(--ink-2)] sm:text-[16px]">
               A considered selection of products for building, engineering, safety and everyday infrastructure.
             </p>
@@ -75,14 +75,25 @@ export async function CataloguePaper({ categories, products, sections = [] }: Pr
           </div>
         </div>
 
-        <div className="px-6 sm:px-12">
-          <div className="relative aspect-[4/3] overflow-hidden border border-[var(--line-strong)] bg-[var(--paper-2)] sm:aspect-[16/9]">
-            <CoverImage imageUrl={coverImage} className="object-cover" />
-          </div>
+        <div className="px-6 pb-6 sm:px-12 sm:pb-8">
+          {/* frontispiece plate — the cover shot sits in a drafting mat with
+              blueprint grid and crop marks, like every section plate */}
+          <figure className="section-plate">
+            <div className="cover-plate-frame">
+              <div>
+                <CoverImage imageUrl={coverImage} className="object-cover" priority />
+              </div>
+            </div>
+            <figcaption className="section-caption">
+              <span className="label text-[var(--muted)]">Fig. 00 &#8212; Frontispiece</span>
+              <span className="hidden flex-1 border-b border-dotted border-[var(--line-strong)] sm:block" aria-hidden />
+              <span className="label tabular-nums text-[var(--brand-blue)]">GEA &#183; 2026</span>
+            </figcaption>
+          </figure>
 
           {/* two-tone feature strip — real product/category photos with branded
               block fallback so the band reads as intentional on sparse data */}
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
             {coverFeatures.map((f, i) => (
               <div
                 key={`${i}-${f.label}`}
@@ -101,9 +112,9 @@ export async function CataloguePaper({ categories, products, sections = [] }: Pr
                   />
                 ) : null}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" aria-hidden />
-                <p className="absolute inset-x-0 bottom-0 px-3 pb-2.5">
+                <p className="absolute inset-x-0 bottom-0 px-3 pb-3">
                   <span className="block text-[12px] font-semibold leading-tight text-white">{f.label}</span>
-                  <span className="mt-0.5 block text-[8.5px] uppercase tracking-[0.16em] text-white/75">{f.caption}</span>
+                  <span className="label mt-1 block !text-[9px] normal-case tracking-[0.14em] text-white/75">{f.caption}</span>
                 </p>
               </div>
             ))}
@@ -173,64 +184,134 @@ export async function CataloguePaper({ categories, products, sections = [] }: Pr
 
       <Hairline />
 
-      {sections.map((section, i) => (
-        <section key={section.id} id={`custom-${section.slug}`} className="catalogue-category scroll-mt-28">
-          <div className="px-6 pb-10 pt-14 sm:px-12 sm:pb-14 sm:pt-20">
-            <div className="flex items-center gap-4">
-              <span className="label tabular-nums font-semibold text-[var(--brand-blue)]">{String(i + 1).padStart(2, "0")}</span>
-              <span className="h-px w-8 bg-[var(--brand-blue)]" aria-hidden />
-              <span className="label text-[var(--muted)]">Catalogue section</span>
+      {sections.map((section, i) => {
+        const sectionNum = String(i + 1).padStart(2, "0");
+        return (
+          <section key={section.id} id={`custom-${section.slug}`} className="catalogue-category scroll-mt-28">
+            {/* running head — printed chapter marker on the blue band */}
+            <div className="section-runhead">
+              <p className="label text-[var(--blue-tint-muted)]">
+                Catalogue section <span aria-hidden>—</span>{" "}
+                <span className="text-white">{section.title}</span>
+              </p>
+              <p className="label tabular-nums text-[var(--blue-tint-muted)]">Page {folio(i + 3)}</p>
             </div>
-            <h2 className="mt-5 max-w-[18ch] font-serif text-[clamp(32px,6.5vw,50px)] font-[440] leading-[0.96] text-[var(--ink)]">{section.title}</h2>
-            {section.description ? <p className="mt-4 max-w-[52ch] font-serif text-[15px] leading-relaxed text-[var(--ink-2)]">{section.description}</p> : null}
-          </div>
-          <div className="relative aspect-[16/6] overflow-hidden border-y border-[var(--line)] bg-[var(--brand-blue-light)] sm:aspect-[16/5]">
-            {section.image_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={section.image_url} alt={section.title} className="h-full w-full object-cover" />
-            ) : (
-              <div className="flex h-full items-center px-6 sm:px-12">
-                <span className="label text-[var(--brand-blue)]">GEA &#183; {section.title}</span>
+
+            {/* chapter opener — information left, matted plate right */}
+            <div className="section-opener">
+              <span className="section-ghost" aria-hidden>
+                {sectionNum}
+              </span>
+
+              <div className="section-opener-grid">
+                <div className="relative">
+                  <div className="flex items-center gap-4">
+                    <span className="label tabular-nums font-semibold text-[var(--blue-tint)]">{sectionNum}</span>
+                    <span className="h-px w-8 bg-[var(--blue-tint)]" aria-hidden />
+                    <span className="label text-[var(--blue-tint-muted)]">Catalogue section</span>
+                  </div>
+                  <h2 className="balance mt-5 font-serif text-[clamp(38px,6vw,64px)] font-[440] leading-[0.95] tracking-[-0.03em] text-white">
+                    {section.title}
+                  </h2>
+                  {section.description ? (
+                    <p className="mt-6 max-w-[46ch] font-sans text-[14.5px] leading-[1.75] text-white/85">
+                      {section.description}
+                    </p>
+                  ) : null}
+                  <div className="mt-8 flex items-center gap-3">
+                    <span className="h-[3px] w-14 bg-[var(--blue-tint)]" aria-hidden />
+                    <span className="h-px flex-1 bg-white/20" aria-hidden />
+                  </div>
+                </div>
+
+                <figure className="section-plate">
+                  <div className="section-plate-frame">
+                    <div>
+                      {section.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={section.image_url} alt={section.title} className="h-full w-full" />
+                      ) : (
+                        <div className="flex h-full items-center justify-center">
+                          <span className="label text-[var(--blue-tint)]">GEA &#183; {section.title}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <figcaption className="section-caption">
+                    <span className="label text-[var(--blue-tint-muted)]">Fig. {sectionNum} &#8212; {section.title}</span>
+                    <span className="hidden flex-1 border-b border-dotted border-white/30 sm:block" aria-hidden />
+                    <span className="label tabular-nums text-white">GEA section</span>
+                  </figcaption>
+                </figure>
               </div>
-            )}
-          </div>
-          <Hairline />
-        </section>
-      ))}
+            </div>
+
+            <Hairline />
+          </section>
+        );
+      })}
 
       {/* ── CATEGORY SECTIONS ───────────────────────────────── */}
       {categories.map((c, i) => {
         const productsInCategory = byCategory(c.slug);
         const folioNum = folio(i + 3);
         const sectionNum = String(i + 1).padStart(2, "0");
+        const count = productsInCategory.length;
         return (
           <section key={c.slug} id={`cat-${c.slug}`} className="catalogue-category scroll-mt-28">
-            {/* chapter header — reads as a printed section opener */}
-            <div className="px-6 pt-12 sm:px-12 sm:pt-16">
-              <div className="flex items-center gap-4">
-                <span className="label tabular-nums font-semibold text-[var(--brand-blue)]">{sectionNum}</span>
-                <span className="h-px w-8 bg-[var(--brand-blue)]" aria-hidden />
-                <span className="label text-[var(--muted)]">
-                  {productsInCategory.length} product{productsInCategory.length === 1 ? "" : "s"}
-                </span>
+            {/* running head — printed chapter marker on the blue band */}
+            <div className="section-runhead">
+              <p className="label text-[var(--blue-tint-muted)]">
+                Section {sectionNum} <span aria-hidden>—</span>{" "}
+                <span className="text-white">{c.name}</span>
+              </p>
+              <p className="label tabular-nums text-[var(--blue-tint-muted)]">Page {folioNum}</p>
+            </div>
+
+            {/* chapter opener — information left, matted plate right */}
+            <div className="section-opener">
+              <span className="section-ghost" aria-hidden>
+                {sectionNum}
+              </span>
+
+              <div className="section-opener-grid">
+                <div className="relative">
+                  <div className="flex items-center gap-4">
+                    <span className="label tabular-nums font-semibold text-[var(--blue-tint)]">{sectionNum}</span>
+                    <span className="h-px w-8 bg-[var(--blue-tint)]" aria-hidden />
+                    <span className="label text-[var(--blue-tint-muted)]">
+                      {count} product{count === 1 ? "" : "s"} in this section
+                    </span>
+                  </div>
+                  <h2 className="balance mt-5 font-serif text-[clamp(38px,6vw,64px)] font-[440] leading-[0.95] tracking-[-0.03em] text-white">
+                    {c.name}
+                  </h2>
+                  {c.description ? (
+                    <p className="mt-6 max-w-[46ch] font-sans text-[14.5px] leading-[1.75] text-white/85">
+                      {c.description}
+                    </p>
+                  ) : null}
+                  <div className="mt-8 flex items-center gap-3">
+                    <span className="h-[3px] w-14 bg-[var(--blue-tint)]" aria-hidden />
+                    <span className="h-px flex-1 bg-white/20" aria-hidden />
+                  </div>
+                </div>
+
+                <figure className="section-plate">
+                  <div className="section-plate-frame">
+                    <div>
+                      <CategoryImage slug={c.slug} name={c.name} imageUrl={c.image} className="object-cover" />
+                    </div>
+                  </div>
+                  <figcaption className="section-caption">
+                    <span className="label text-[var(--blue-tint-muted)]">Fig. {sectionNum} &#8212; {c.name}</span>
+                    <span className="hidden flex-1 border-b border-dotted border-white/30 sm:block" aria-hidden />
+                    <span className="label tabular-nums text-white">{count} items</span>
+                  </figcaption>
+                </figure>
               </div>
-              <h2 className="balance mt-4 max-w-[18ch] font-serif text-[clamp(32px,6.5vw,52px)] font-[440] leading-[0.96] tracking-[-0.025em] text-[var(--ink)]">
-                {c.name}
-              </h2>
-              {c.description ? (
-                <p className="mt-4 max-w-[52ch] font-serif text-[15px] leading-relaxed text-[var(--ink-2)]">{c.description}</p>
-              ) : null}
-              <div className="mt-6 h-[3px] w-14 bg-[var(--brand-blue)]" aria-hidden />
             </div>
 
-            <div className="relative mt-8 aspect-[16/6] overflow-hidden border-y border-[var(--line-strong)] bg-[var(--paper-2)] sm:aspect-[16/5]">
-              <CategoryImage slug={c.slug} name={c.name} imageUrl={c.image} className="object-cover" />
-            </div>
-
-            <div className="flex items-center justify-between px-6 py-4 sm:px-12">
-              <p className="label text-[9px] text-[var(--muted)]">Page {folioNum} &#183; Section {sectionNum}</p>
-              <p className="label tabular-nums text-[9px] text-[var(--muted)]">{productsInCategory.length} items</p>
-            </div>
             <Hairline />
 
             {/* product grid — dense, quiet, framed like printed plates */}
@@ -264,14 +345,14 @@ export async function CataloguePaper({ categories, products, sections = [] }: Pr
           <div className="mt-4 grid gap-12 lg:grid-cols-[1fr_auto]">
             <div className="border-t-2 border-[var(--brand-blue)] pt-10">
               <p className="label text-[var(--brand-blue)]">Thank you</p>
-              <h3 className="mt-3 font-serif text-[clamp(36px,7vw,60px)] font-[450] leading-none tracking-[-0.02em] text-[var(--ink)]">
+              <h3 className="mt-4 font-serif text-[clamp(34px,6.5vw,56px)] font-[450] leading-[0.98] tracking-[-0.02em] text-[var(--ink)]">
                 Let&apos;s connect.
               </h3>
-              <p className="mt-6 max-w-[48ch] font-sans text-[14px] leading-relaxed text-[var(--ink-2)]">
+              <p className="mt-6 max-w-[48ch] font-sans text-[14.5px] leading-relaxed text-[var(--ink-2)]">
                 {settings.closing_message}
               </p>
 
-              <address className="mt-10 max-w-xl space-y-3.5 not-italic font-sans text-[13px] leading-relaxed tracking-[0.03em] text-[var(--ink-2)]">
+              <address className="mt-10 max-w-xl space-y-3.5 not-italic font-sans text-[13.5px] leading-relaxed tracking-[0.03em] text-[var(--ink-2)]">
                 <a className="flex items-start gap-3 transition-colors hover:text-[var(--brand-blue)]" href={`tel:${settings.contact_phone.replace(/[^+\d]/g, "")}`}>
                   <IconPhone size={16} stroke={1.6} className="mt-0.5 shrink-0 text-[var(--brand-blue)]" aria-hidden />
                   <span>{settings.contact_phone}</span>

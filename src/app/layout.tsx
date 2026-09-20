@@ -1,20 +1,18 @@
 import type { Metadata } from "next";
-import { Manrope, DM_Serif_Display } from "next/font/google";
+import { Inter, Sora } from "next/font/google";
 import { getCategories, getProducts, getOrderedCategories } from "@/lib/catalog-supabase";
 import "./globals.css";
 
-const sans = Manrope({
+const sans = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
 });
 
-const serif = DM_Serif_Display({
+const serif = Sora({
   subsets: ["latin"],
   variable: "--font-serif",
   display: "swap",
-  weight: "400",
-  style: ["normal", "italic"],
 });
 
 export async function generateMetadata(): Promise<Metadata> {

@@ -47,21 +47,9 @@ export function sectionCount(categories: Category[]): number {
   return categories.length + 3;
 }
 
-// Ordered category list as they appear in the workbook (preserve discovery order
-// rather than alpha, so the catalogue reads like a real stock order)
-const WORKBOOK_ORDER = [
-  "aluminium-equipments",
-  "camera-camera-accessories",
-  "electrical-equipment",
-  "fire-fighting-equipment",
-  "other-items",
-  "plumbing-equipment",
-  "safety-equipments",
-  "security-equipments",
-  "tiles-and-sanitary-wares",
-];
-
+// Ordered category list. In local mode the JSON array order is the source
+// of truth (it already follows the workbook order); in Supabase mode the
+// admin Categories screen drives the order via display_order.
 export function getOrderedCategories(): Category[] {
-  const bySlug = new Map(data.categories.map((c) => [c.slug, c]));
-  return WORKBOOK_ORDER.map((s) => bySlug.get(s)!).filter(Boolean);
+  return data.categories.slice();
 }
